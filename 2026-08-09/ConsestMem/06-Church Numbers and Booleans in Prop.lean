@@ -1,4 +1,3 @@
-```lean
 -- ## 1. Impredicative Booleans (Bool)
 
 def CBool : Prop := ∀ (A : Prop), A → A → A
@@ -21,5 +20,3 @@ theorem cSucc (n : CNat) : CNat :=
   fun (A : Prop) (f : A → A) (x : A) => f (n A f x)
 
 -- With impredicativity in Prop, the system folds in on itself
-
-```

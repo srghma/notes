@@ -1,4 +1,3 @@
-```rust
 use std::ptr::{NonNull};
 
 struct Node {
@@ -141,4 +140,3 @@ pub fn main() {
         }
     }
 }
-```

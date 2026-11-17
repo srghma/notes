@@ -1,4 +1,3 @@
-```odin
 package main
 
 import "core:fmt"
@@ -137,4 +136,3 @@ main :: proc() {
 		curr = next
 	}
 }
-```

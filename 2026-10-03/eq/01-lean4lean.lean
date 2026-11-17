@@ -1,4 +1,3 @@
-```lean
 /-!
 ## Encoding `test_work` into lean4lean
 
@@ -149,4 +148,3 @@ run_meta do
   | .error e => throwError "lean4lean rejected test_work_manual: {← (e.toMessageData {}).toString}"
 
 end TestWork_Manual
-```

@@ -1,4 +1,3 @@
-```lean
 inductive Dom : Type where
 | nat : Dom 
 
@@ -36,4 +35,3 @@ inductive EvalsTo : {T : Dom} → ⊢ T → ⟦ T ⟧ → Type where
 #check EvalsTo.ADD
 -- EvalsTo.ADD {e₁ e₂ : ⊢ Dom.nat} {v₁ v₂ : Nat} 
 --   (a : e₁ ⇓ v₁) (a_1 : e₂ ⇓ v₂) : (e₁ ⊕ e₂) ⇓ v₁ + v₂
-```

@@ -1,4 +1,3 @@
-```tsx
 import React, { useMemo, useState } from "react";
 
 /* ============================================================================
@@ -1019,4 +1018,3 @@ const styles = {
   heapFieldValue: { fontSize: "12px", color: T.ink, fontWeight: 600 },
   heapFieldPointsTo: { color: T.inkDim, fontWeight: 400, fontSize: "10.5px" },
 };
-```

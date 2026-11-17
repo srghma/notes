@@ -1,4 +1,3 @@
-```go
 package main
 
 import "fmt"
@@ -92,4 +91,3 @@ func main() {
 	fmt.Println("\nAfter removing END (50):")
 	printList(head)
 }
-```

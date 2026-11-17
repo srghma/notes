@@ -1,4 +1,3 @@
-```zig
 import React, { useMemo, useState } from "react";
 
 /* ============================================================================
@@ -716,4 +715,3 @@ const styles = {
   },
   sidebarNote: { fontSize: "10.5px", color: T.inkDim, marginTop: "2px" },
 };
-```

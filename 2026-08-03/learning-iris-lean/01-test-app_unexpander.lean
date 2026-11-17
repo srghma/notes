@@ -1,4 +1,3 @@
-```lean
 import Lean
 
 open Lean PrettyPrinter
@@ -39,5 +38,3 @@ def unexpDouble : Unexpander
 
 #check double 5
 -- OUTPUT: dbl(5) : Nat    <-- Even raw function calls get pretty-printed
-
-```

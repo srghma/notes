@@ -1,4 +1,3 @@
-```lean
 module
 
 prelude
@@ -77,4 +76,3 @@ variable {l : Type u} [CompleteLattice l] {P P' Q Q' R R' T : l} {φ φ₁ φ₂
     +[Heyting l] (P Q : l) :
     ((⊤ : l) ⊑ P ⇨ Q) ↔ (P ⊑ Q) :=
   ⟨fun h => rel_trans
-```

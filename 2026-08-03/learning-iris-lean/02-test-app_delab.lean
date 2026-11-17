@@ -1,4 +1,3 @@
-```lean
 import Lean
 
 open Lean PrettyPrinter Delaborator SubExpr
@@ -60,4 +59,3 @@ def delabBoxMk : Delab := do
 set_option pp.explicit true in
 #check Box.mk 42
 -- OUTPUT: @Box.mk Nat 42 : Nat
-```

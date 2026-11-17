@@ -1,4 +1,3 @@
-```lean
 ---- If you give Quot a relation r that isn't symmetric or transitive, Quot will force it to become symmetric and transitive anyway!
 -- A simple Directed Graph with 4 nodes
 inductive Node
@@ -37,4 +36,3 @@ theorem a_eq_c : Quot.mk Edge Node.A = Quot.mk Edge Node.C := by
 -- 4. B = A because `Quot` AUTOMATICALLY handles Symmetry!
 theorem b_eq_a : Quot.mk Edge Node.B = Quot.mk Edge Node.A := by
   rw [a_eq_b]
-```

@@ -1,4 +1,3 @@
-```zig
 const std = @import("std");
 
 const Node = struct {
@@ -122,4 +121,3 @@ pub fn main() !void {
         curr = next;
     }
 }
-```

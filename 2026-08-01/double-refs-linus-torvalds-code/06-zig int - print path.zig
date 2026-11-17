@@ -1,4 +1,3 @@
-```zig
 const std = @import("std");
 
 inline fn deepPrint(outer: ?*?*?i32, base_addr: usize) void {
@@ -67,4 +66,3 @@ pub fn main() void {
     std.debug.print("V4: ", .{});
     deepPrint(&middle_to_val_one, base_addr);
 }
-```

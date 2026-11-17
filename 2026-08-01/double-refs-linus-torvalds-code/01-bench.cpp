@@ -1,4 +1,3 @@
-```cpp
 #include <benchmark/benchmark.h>
 #include <vector>
 #include <forward_list>
@@ -239,4 +238,3 @@ static void BM_StdList(benchmark::State& state) {
     state.SetLabel(COMPILER_NAME);
 }
 BENCHMARK(BM_StdList);
-```

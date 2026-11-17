@@ -1,4 +1,3 @@
-```lean
 -- 1. Declare the Person structure
 structure Person where
   name   : String
@@ -23,5 +22,3 @@ theorem alice_is_tallest (h : ∀ p : Person, p = Alice ∨ p = Bob) : IsTallest
     exact Nat.le_refl 180
   · -- Case p = Bob
     exact Nat.le_of_lt (by decide)
-
-```

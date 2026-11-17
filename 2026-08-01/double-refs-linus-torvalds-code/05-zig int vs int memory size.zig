@@ -1,4 +1,3 @@
-```zig
 const std = @import("std");
 
 pub fn main() void {
@@ -21,4 +20,3 @@ pub fn main() void {
         std.debug.print("maybe_int is now null, which is different from 0.\n", .{});
     }
 }
-```

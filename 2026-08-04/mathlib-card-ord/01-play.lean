@@ -1,4 +1,3 @@
-```lean
 -- import Mathlib.SetTheory.Ordinal.Basic
 -- import Mathlib.SetTheory.Ordinal.Arithmetic
 -- import Mathlib.SetTheory.Cardinal.Basic
@@ -165,4 +164,3 @@ example (n : ℕ) : Ordinal.omega0 ^ (n : Ordinal) < Ordinal.omega0 ^ Ordinal.om
 example : Ordinal.card (Ordinal.omega0 ^ Ordinal.omega0) = Cardinal.aleph0 := by
   rw [Ordinal.card_opow_eq_of_omega0_le_right Ordinal.one_lt_omega0 (le_refl _)]
   simp
-```

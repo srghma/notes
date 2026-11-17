@@ -1,4 +1,3 @@
-```c3
 module main;
 
 import std::io;
@@ -123,4 +122,3 @@ fn int main() {
 
     return 0;
 }
-```
