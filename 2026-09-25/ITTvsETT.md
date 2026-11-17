@@ -1,0 +1,17 @@
+both ETT and ITT have both definitional equality (normal form eq of Values) and propositional equality (need to write proof/path)
+
+but ETT has internal db of x = y (e.g. n+0=n) and can search that db to prove things later.
+
+ITT has no db, programmer has to always provide proof again, manually use a tool called transport (or cast) 
+
+The Problem with ETT: If any valid proof can magically make two things definitionally equal, the computer has to search for potential mathematical proofs automatically while checking your program. Because math proofs can be infinitely complex, type checking becomes undecidable (the computer can get trapped in an infinite loop and crash).
+
+------------
+
+how classical logic allows to prove that 
+
+def repeatM [Nonempty β] (f : α → α ⊕ β) (a : α) : β := ...
+
+by repeating f eventually I 100% will get B?
+
+implement so that can execute in live lean
