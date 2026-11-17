@@ -47,41 +47,53 @@ section Basic
 ----- c means "is collection?"
 ----- s means "proposed supremum"
 
-direction -> : if x is more than s (not possible, can only be equal. right?)
-   then such x should be more than all other elements of collection
-
-     Example: let collection be {2,4,6} over N (from 0 to inf)
-     - proposed supremum is inf:
-        does it give `s ⊑ x → (∀ y, c y → y ⊑ x)`? s inf , x inf, YES
-        does it give `(∀ y, c y → y ⊑ x) → s ⊑ x`? NO, counterexample is 6 or 7
-     - proposed supremum is 2:
-        does it give `s ⊑ x → (∀ y, c y → y ⊑ x)`? NO (x is 2 breaks, how about 1? 0?)
-        does it give `(∀ y, c y → y ⊑ x) → s ⊑ x`? YES
-     - proposed supremum is 4:
-        does it give `s ⊑ x → (∀ y, c y → y ⊑ x)`? NO (x is 2 or 4 breaks)
-        does it give `(∀ y, c y → y ⊑ x) → s ⊑ x`? YES
-     - proposed supremum is 6:
-        does it give `s ⊑ x → (∀ y, c y → y ⊑ x)`? YES
-        does it give `(∀ y, c y → y ⊑ x) → s ⊑ x`? YES
-
-
-    Compare Nat, Rat, and Real in lean (ConditionallyCompleteLinearOrderBot):
-      Every bounded nonempty subset has a supremum?
-      Nat - yes (though unbounded - no, inf doesnt exist)
-      Rat - no (bc from 0 to square root of 2 - the sepremum is not in Rat, its in Real)
-      Rat - yes (bc from 0 to square root of 2 - the sepremum is in Real)
+-- direction -> : if x is more than s (not possible, can only be equal. right?)
+--    then such x should be more than all other elements of collection
+--
+--      Example: let collection be {2,4,6} over N (from 0 to inf)
+--      - proposed supremum is inf:
+--         does it give `s ⊑ x → (∀ y, c y → y ⊑ x)`? s inf , x inf, YES
+--         does it give `(∀ y, c y → y ⊑ x) → s ⊑ x`? NO, counterexample is 6 or 7
+--      - proposed supremum is 2:
+--         does it give `s ⊑ x → (∀ y, c y → y ⊑ x)`? NO (x is 2 breaks, how about 1? 0?)
+--         does it give `(∀ y, c y → y ⊑ x) → s ⊑ x`? YES
+--      - proposed supremum is 4:
+--         does it give `s ⊑ x → (∀ y, c y → y ⊑ x)`? NO (x is 2 or 4 breaks)
+--         does it give `(∀ y, c y → y ⊑ x) → s ⊑ x`? YES
+--      - proposed supremum is 6:
+--         does it give `s ⊑ x → (∀ y, c y → y ⊑ x)`? YES
+--         does it give `(∀ y, c y → y ⊑ x) → s ⊑ x`? YES
+--
+--
+--     Compare Nat, Rat, and Real in lean (ConditionallyCompleteLinearOrderBot):
+--       Every bounded nonempty subset has a supremum?
+--       Nat - yes (though unbounded - no, inf doesnt exist)
+--       Rat - no (bc from 0 to square root of 2 - the sepremum is not in Rat, its in Real)
+--       Rat - yes (bc from 0 to square root of 2 - the sepremum is in Real)
 
 -- namespace PartialOrder
 -- @[expose] def is_sup {α : Sort u} [PartialOrder α] (c : α → Prop) (s : α) : Prop :=
 --   ∀ x, s ⊑ x ↔ (∀ y, c y → y ⊑ x)
--- /--
--- `is_meet x y w` states that `w` is a greatest lower bound of `x` and `y`.
---
--- This is intended to be used in the construction of the strong induction principles of
--- `inductive_fixpoint` and `coinductive_fixpoint`, and not meant to be used otherwise.
--- -/
+
+
+--------- x and y are walls, w is floow below both walls
+---------   two elements "meet" ∧ at their greatest lower bound
+---------   A={1,2,3}  B={2,3,4}
+---------   - Meet = intersection: A∧B=A∩B={2,3} (is sub of {1,2,3} and of {2,3,4} and all that ...)
+---------   - Join = union:        A∨B=A∪B={1,2,3,4}
+
+--------- is_meet ({1, 2, 3} : Set Nat) ({2, 3, 4} : Set Nat) {2, 3} := by...
+--------- is_meet 6 4 4 := by...
+
+
+---------------   two elements "join" v at their smallest upper bound
+
 -- @[expose] def is_meet (x y w : α) : Prop :=
---   w ⊑ x ∧ w ⊑ y ∧ ∀ z, z ⊑ x → z ⊑ y → z ⊑ w
+--   w ⊑ x ∧
+--   w ⊑ y ∧
+--   ∀ z, z ⊑ x → z ⊑ y → z ⊑ w
+---------------   "Whatever number z you choose, if it's below BOTH 6 and 4, it must also be below 4."
+
 -- end PartialOrder
 
 -- class CompleteLattice (α : Sort u) extends PartialOrder α where
@@ -95,10 +107,44 @@ direction -> : if x is more than s (not possible, can only be equal. right?)
 
 variable {α : Type u} [CompleteLattice α]
 
+------------- f is mapper
+------------- s is collection (same as c in is_sup)
+
+------------- "supremum of collection s" after f
+------------- is equal to
+------------- supremum of the collection you get after applying f to every element of the original collection s
+
+------------- E.g.
+------------- x={2,4,6}
+------------- f(x) = 2x
+------------- y={4,8,12}
+-------------
+------------- `fun y => ∃ x, s x ∧ y = f x` is a new collection maker
+-------------
+------------- sup{2,4,6}=6
+------------- sup{4,8,12}=12
+
+
 -- class PreservesSup {α : Type u} [CompleteLattice α] (f : α → α) : Prop where
 --   /-- `f` preserves joins. -/
 --   map_sup (s : α → Prop) :
 --     f (CompleteLattice.sup s) = CompleteLattice.sup (fun y => ∃ x, s x ∧ y = f x)
+
+
+------------------- f (Classical.choose
+-------------------     (show ∃ a,
+-------------------       ∀ x, a ⊑ x ↔ (∀ y, s y → y ⊑ x)
+-------------------       from CompleteLattice.has_sup s))
+------------------- =
+------------------- Classical.choose
+-------------------   (show ∃ b,
+-------------------     ∀ x, b ⊑ x ↔
+-------------------       (∀ y, (∃ x, s x ∧ y = f x) → y ⊑ x)
+-------------------     from CompleteLattice.has_sup
+-------------------       (fun y => ∃ x, s x ∧ y = f x))
+
+-- Infimum of a = Supremum of "a in the reversed order"
+-- noncomputable def inf (c : α → Prop) : α := CompleteLattice.sup (∀ y, c y → · ⊑ y)
 
 -- /-- Binary meet (infimum) -/
 -- noncomputable def meet (x y : α) : α := inf (fun z => z = x ∨ z = y)
