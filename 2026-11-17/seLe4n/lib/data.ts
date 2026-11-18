@@ -1,0 +1,211 @@
+import type { EdgeDef, LaneDef, NodeDef, PathDef, TimelineCol } from "./types";
+
+export const REPO = "/home/srghma/projects/kraken";
+
+export const PATHS: PathDef[] = [
+  { shortPath: "old/P3.lean", filePart: "old_P3", fullPath: "Kraken/Examples/P3.lean", isP3: true },
+  { shortPath: "P3.lean", filePart: "P3", fullPath: "Kraken/X64/Examples/P3.lean", isP3: true },
+  { shortPath: "WP/P3.lean", filePart: "WP_P3", fullPath: "Kraken/X64/Examples/WP/P3.lean", isP3: true },
+  { shortPath: "old/Examples.lean", filePart: "old_Examples", fullPath: "Kraken/Examples/Examples.lean", isP3: false },
+  { shortPath: "Examples.lean", filePart: "Examples", fullPath: "Kraken/X64/Examples/Examples.lean", isP3: false },
+];
+
+export const LANES: LaneDef[] = [
+  { lane: 0, band: "upstream", label: "Upstream main" },
+  { lane: 1, band: "upstream", label: "Upstream PRs & Nightly" },
+  { lane: 2, band: "sgraf", label: "sgraf812 Trunk & Track B (VCGen)" },
+  { lane: 3, band: "sgraf", label: "Track A + B Merge" },
+  { lane: 4, band: "sgraf", label: "Track A (FMA3 & Speedups)" },
+];
+
+export const TIMELINE_COLS: TimelineCol[] = [
+  { col: 0, dateLabel: "2026-07-22", subLabel: "PR #125" },
+  { col: 1, dateLabel: "2026-08-03", subLabel: "PR #131 / freeze" },
+  { col: 2, dateLabel: "2026-08-14..17", subLabel: "estatem / PR #154" },
+  { col: 3, dateLabel: "2026-09-10", subLabel: "Merge 23b6409" },
+  { col: 4, dateLabel: "2026-09-18", subLabel: "829c9468 (TARGET)", isTarget: true },
+  { col: 5, dateLabel: "2026-09-25", subLabel: "nightly-09-21 / #160" },
+  { col: 6, dateLabel: "2026-09-28..29", subLabel: "sepwp / 63c72ed" },
+  { col: 7, dateLabel: "2026-09-29..30", subLabel: "7cfd503 / FMA3" },
+  { col: 8, dateLabel: "2026-10-16..20", subLabel: "nightly-10-14 / #165" },
+  { col: 9, dateLabel: "2026-10-19..20", subLabel: "speedups / statewp" },
+  { col: 10, dateLabel: "2026-10-26..27", subLabel: "dcc8cc1 / drop-framewp" },
+  { col: 11, dateLabel: "2026-10-27", subLabel: "merge-vcgen" },
+  { col: 12, dateLabel: "2026-11-02", subLabel: "PR #179" },
+  { col: 13, dateLabel: "2026-11-05..11", subLabel: "conj-wp / PR #247" },
+  { col: 14, dateLabel: "2026-11-12..16", subLabel: "vcgen / main HEAD" },
+];
+
+export const NODES: NodeDef[] = [
+  {
+    id: "M_125", commit: "881e959", slug: "PR125", col: 0, lane: 0, kind: "upstream",
+    title: "PR #125",
+    desc: "Upstream base before estatem-kfold branched off",
+  },
+  {
+    id: "M_131", commit: "05cad40", slug: "PR131", col: 1, lane: 0, kind: "upstream",
+    title: "PR #131",
+    desc: "Upstream snapshot where sgraf812/main froze",
+  },
+  {
+    id: "SG_MAIN", commit: "05cad40", slug: "sg-main", col: 1, lane: 2, kind: "baseBranch",
+    title: "sgraf812/main",
+    desc: "Stale fork mirror of upstream PR #131",
+  },
+  {
+    id: "M_154", commit: "2c56cbd", slug: "PR154", col: 2, lane: 0, kind: "upstream",
+    title: "PR #154",
+    desc: "X64/AArch64 split, generic layout, ecancel",
+  },
+  {
+    id: "EST", commit: "d68f0a4", slug: "estatem-kfold", col: 2, lane: 2, kind: "baseBranch",
+    title: "estatem-kfold",
+    desc: "Open/closed Program.wp (wpOpen/wpClosed), Program.WF, block extraction (+154 off 881e959)",
+  },
+  {
+    id: "M23B", commit: "23b6409", slug: "23b6409", col: 3, lane: 2, kind: "mergeNode",
+    title: "23b6409 (Merge)",
+    desc: "Merge estatem-kfold with upstream X64/AArch64 split & ecancel",
+  },
+  {
+    id: "C829", commit: "829c9468", slug: "829c9468", col: 4, lane: 2, kind: "targetCommit",
+    title: "829c9468 · TARGET",
+    desc: "Exact fork point: Algebraic ecancel (SepOps) + solveSepSplit frameproc; separation triples & byte/slice VCGen examples",
+  },
+  {
+    id: "M_160", commit: "30f5a5f", slug: "PR160", col: 5, lane: 0, kind: "upstream",
+    title: "PR #160",
+    desc: "Merge toolchain-nightly-2026-09-21 & Lean module system",
+  },
+  {
+    id: "TN", commit: "1045c33", slug: "nightly-09-21", col: 5, lane: 1, kind: "baseBranch",
+    title: "toolchain-nightly-2026-09-21",
+    desc: "Adopt Lean module system & bump to nightly-2026-09-21 (+75 ahead of 05cad40)",
+  },
+  {
+    id: "SEP", commit: "12371fd", slug: "sepwp", col: 6, lane: 1, kind: "activePR",
+    title: "sgraf812:sepwp · PR #161",
+    desc: "Separation-logic WP (MProp) & frame inference prototype (alu_mem_example); no 829c9468",
+  },
+  {
+    id: "M63C", commit: "63c72ed", slug: "63c72ed", col: 6, lane: 2, kind: "mergeNode",
+    title: "63c72ed (Merge)",
+    desc: "Adopt Lean module system & nightly-2026-09-21 over 829c9468",
+  },
+  {
+    id: "M7CF", commit: "7cfd503", slug: "7cfd503", col: 7, lane: 2, kind: "mergeNode",
+    title: "7cfd503 (Merge)",
+    desc: "Pull sepwp prototype (PR #161) over the baseline trunk",
+  },
+  {
+    id: "FMA3", commit: "9209b11", slug: "fma3", col: 7, lane: 4, kind: "trackA",
+    title: "sg/fma3-default-limits",
+    desc: "Prove ff_scalarproduct_float_fma3 at default solver limits + SbrNegOdd64 (+11 ahead of 829c9468)",
+  },
+  {
+    id: "M_165", commit: "72f3a7a", slug: "PR165", col: 8, lane: 0, kind: "upstream",
+    title: "PR #165",
+    desc: "sgraf812/wp-foundation merged to upstream",
+  },
+  {
+    id: "N1014", commit: "9743c3a", slug: "nightly-10-14", col: 8, lane: 4, kind: "trackA",
+    title: "sg/nightly-2026-10-14",
+    desc: "Bump to nightly-2026-10-14; indirect memory calls; trim MachineWP deps (+12 / +23)",
+  },
+  {
+    id: "PR_166", commit: "4989e1c", slug: "PR166-statewp", col: 9, lane: 1, kind: "activePR",
+    title: "sgraf812/statewp · PR #166",
+    desc: "Program.WP vcgen instance (kvcgen64), Host/step1, nightly-2026-10-20 (+5 ahead of 72f3a7a; no 829c9468)",
+  },
+  {
+    id: "SPEED", commit: "a443d2c", slug: "speedups", col: 9, lane: 4, kind: "trackA",
+    title: "sg/upstream-speedups",
+    desc: "Clean simp/grind normal forms, alignment/bounds & faster CFG VC discharge (+14 / +37)",
+  },
+  {
+    id: "DROP", commit: "bc85a6a", slug: "drop-framewp", col: 10, lane: 2, kind: "trackB",
+    title: "sg/drop-framewp",
+    desc: "CFG-invariant Program.wp (indirect jumps, FMA3, nightly-10-26); drops old sep WP & frame inf (+179)",
+  },
+  {
+    id: "DCC", commit: "dcc8cc1", slug: "dcc8cc1", col: 10, lane: 3, kind: "mergeNode",
+    title: "dcc8cc1 (Merge)",
+    desc: "Merge early vcgen (fe604b6) into sg/mem-mapped",
+  },
+  {
+    id: "MERGE_VC", commit: "3696f0b", slug: "merge-vcgen", col: 11, lane: 3, kind: "trackB",
+    title: "sg/merge-vcgen",
+    desc: "Port Butterflies/FmulSse to Program.wp & unify Track A with drop-framewp (+26 / +205)",
+  },
+  {
+    id: "M_179", commit: "6064eec", slug: "PR179", col: 12, lane: 0, kind: "upstream",
+    title: "PR #179",
+    desc: "x64-fix-avx-access (base of conj-wp)",
+  },
+  {
+    id: "M_247", commit: "0fccb2d", slug: "PR247", col: 13, lane: 0, kind: "upstream",
+    title: "PR #247",
+    desc: "Rep-string, delaborators, AArch64 parsers (last synced to vcgen)",
+  },
+  {
+    id: "PR_195", commit: "f5a85a1", slug: "PR195-conj-wp", col: 13, lane: 1, kind: "activePR",
+    title: "sgraf812/conj-wp · PR #195",
+    desc: "Syntax-driven conjunctive Program.wp (StepIn, Natural, Until), SP call inv, rec even/odd (+25; no 829c9468)",
+  },
+  {
+    id: "M_HEAD", commit: "b44bf3f", slug: "main", col: 14, lane: 0, kind: "upstream",
+    title: "AeneasVerif/main",
+    desc: "Latest upstream main: layout & parser fixes (+10 ahead of 0fccb2d; +245 ahead of 05cad40)",
+  },
+  {
+    id: "VCGEN", commit: "6c2f048", slug: "vcgen", col: 14, lane: 2, kind: "trackB",
+    title: "vcgen",
+    desc: "Main active VCGen branch: ChangingFrames/ManyCalls specs + upstream sync (+152 / +331)",
+  },
+];
+
+export const EDGES: EdgeDef[] = [
+  // Upstream spine
+  { from: "M_125", to: "M_131", label: "+29" },
+  { from: "M_131", to: "M_154" },
+  { from: "M_154", to: "M_160" },
+  { from: "M_160", to: "M_165" },
+  { from: "M_165", to: "M_179" },
+  { from: "M_179", to: "M_247" },
+  { from: "M_247", to: "M_HEAD", label: "+10" },
+
+  // Upstream PRs
+  { from: "M_165", to: "PR_166", label: "+5" },
+  { from: "M_179", to: "PR_195", label: "+25" },
+
+  // sgraf812 early / nightly / sepwp
+  { from: "M_131", to: "SG_MAIN", label: "freeze", dashed: true },
+  { from: "M_125", to: "EST", label: "+154" },
+  { from: "M_154", to: "TN" },
+  { from: "TN", to: "M_160", label: "PR #160", dashed: true },
+  { from: "M_160", to: "SEP", label: "+5" },
+
+  // Merge -> 829c9468
+  { from: "EST", to: "M23B" },
+  { from: "M_154", to: "M23B", label: "merge", dashed: true },
+  { from: "M23B", to: "C829", label: "+22" },
+
+  // Track A
+  { from: "C829", to: "FMA3", label: "+11" },
+  { from: "FMA3", to: "N1014", label: "+12" },
+  { from: "N1014", to: "SPEED", label: "+14" },
+
+  // Track B
+  { from: "C829", to: "M63C", label: "+21" },
+  { from: "TN", to: "M63C", label: "merge", dashed: true },
+  { from: "M63C", to: "M7CF" },
+  { from: "SEP", to: "M7CF", label: "merge", dashed: true },
+  { from: "M7CF", to: "DROP" },
+  { from: "DROP", to: "VCGEN", label: "+152" },
+  { from: "M_247", to: "VCGEN", label: "merge 339acd1", dashed: true },
+
+  // sg/merge-vcgen
+  { from: "FMA3", to: "DCC" },
+  { from: "DCC", to: "MERGE_VC" },
+  { from: "DROP", to: "MERGE_VC", label: "merge", dashed: true },
+];

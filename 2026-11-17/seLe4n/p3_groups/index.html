@@ -1,0 +1,978 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Kraken P3 / VCGen Branch Tree &amp; Timeline</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --border: #cbd5e1;
+    --text: #0f172a;
+    --muted: #475569;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: #ffffff;
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .topbar h1 {
+    font-size: 15px;
+    margin: 0;
+    font-weight: 700;
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    font-size: 11.5px;
+  }
+  .leg-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1.5px solid #94a3b8;
+    background: #fff;
+    font-weight: 500;
+  }
+  .leg-upstream { background: #dbeafe; border-color: #2563eb; }
+  .leg-baseBranch { background: #f1f5f9; border-color: #64748b; }
+  .leg-mergeNode { background: #ede9fe; border-color: #7c3aed; }
+  .leg-activePR { background: #fce7f3; border-color: #be123c; border-width: 2.5px; }
+  .leg-targetCommit { background: #fef08a; border-color: #b45309; border-width: 2.5px; }
+  .leg-trackA { background: #ccfbf1; border-color: #0d9488; }
+  .leg-trackB { background: #dcfce7; border-color: #15803d; }
+
+  .controls {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .controls button {
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .controls button:hover { background: #f1f5f9; }
+  .controls button.active { background: #0f172a; color: #fff; border-color: #0f172a; }
+
+  .viewport {
+    overflow: auto;
+    padding: 16px;
+    padding-bottom: 180px;
+  }
+  .board-scale {
+    transform-origin: top left;
+    display: inline-block;
+  }
+  .board {
+    position: relative;
+    display: grid;
+    grid-template-columns: 190px repeat(15, 218px);
+    grid-template-rows: repeat(5, minmax(112px, auto)) 78px;
+    column-gap: 34px;
+    row-gap: 18px;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .edges-svg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+    overflow: visible;
+  }
+  .col-guide {
+    border-left: 1px dashed #e2e8f0;
+    margin-left: -17px;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .col-guide.is-target {
+    border-left: 2px dashed #d97706;
+    background: rgba(254, 240, 138, 0.14);
+  }
+  .band-divider {
+    border-top: 2px solid #cbd5e1;
+    margin-top: -10px;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .lane-label {
+    position: sticky;
+    left: 0;
+    z-index: 20;
+    background: rgba(255, 255, 255, 0.96);
+    border-right: 2px solid #e2e8f0;
+    padding: 8px 12px 8px 4px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+  }
+  .band-tag {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    font-weight: 700;
+  }
+  .lane-name {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .node-card {
+    position: relative;
+    z-index: 10;
+    text-align: left;
+    border-radius: 10px;
+    border: 2px solid #94a3b8;
+    padding: 8px 10px;
+    background: #fff;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+    transition: transform 0.12s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+    align-self: center;
+    font: inherit;
+  }
+  .node-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.14);
+  }
+  .node-card.dimmed { opacity: 0.25; }
+  .node-card.selected { outline: 3px solid #0f172a; outline-offset: 2px; }
+
+  .kind-upstream { background: #dbeafe; border-color: #2563eb; }
+  .kind-baseBranch { background: #f1f5f9; border-color: #64748b; }
+  .kind-mergeNode { background: #ede9fe; border-color: #7c3aed; }
+  .kind-activePR { background: #fce7f3; border-color: #be123c; border-width: 3px; }
+  .kind-targetCommit { background: #fef08a; border-color: #b45309; border-width: 3px; border-radius: 18px; }
+  .kind-trackA { background: #ccfbf1; border-color: #0d9488; }
+  .kind-trackB { background: #dcfce7; border-color: #15803d; }
+
+  .node-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+  }
+  .node-hash {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.72);
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+  .node-date {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: #334155;
+    font-size: 10.5px;
+    font-weight: 600;
+  }
+  .node-title {
+    font-size: 12.5px;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+  .node-desc {
+    font-size: 11px;
+    line-height: 1.3;
+    color: #1e293b;
+  }
+  .node-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 2px;
+  }
+  .g-pill {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: rgba(15, 23, 42, 0.1);
+    color: #0f172a;
+  }
+  .g-pill.missing { background: #fee2e2; color: #991b1b; }
+
+  /* Row 2: Timeline axis */
+  .tl-corner {
+    position: sticky;
+    left: 0;
+    z-index: 25;
+    background: #f1f5f9;
+    border-top: 2px solid #64748b;
+    border-right: 2px solid #cbd5e1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 8px 12px 8px 8px;
+    border-bottom-left-radius: 8px;
+  }
+  .tl-corner strong { font-size: 12px; }
+  .tl-corner span { font-size: 10.5px; color: var(--muted); }
+
+  .tl-cell {
+    position: relative;
+    z-index: 10;
+    border-top: 2px solid #64748b;
+    background: #f8fafc;
+    padding: 12px 8px 6px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 2px;
+    border-radius: 0 0 8px 8px;
+  }
+  .tl-cell.is-target {
+    background: #fef9c3;
+    border-top-color: #b45309;
+    border-top-width: 3px;
+  }
+  .tl-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #334155;
+    border: 2px solid #fff;
+    position: absolute;
+    top: -6.5px;
+  }
+  .tl-cell.is-target .tl-dot {
+    background: #b45309;
+    width: 13px;
+    height: 13px;
+    top: -8px;
+  }
+  .tl-date {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .tl-sub {
+    font-size: 10.5px;
+    color: #475569;
+    line-height: 1.2;
+  }
+
+  /* Inspector drawer */
+  .inspector {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: 14px;
+    z-index: 50;
+    background: #0f172a;
+    color: #f8fafc;
+    border-radius: 10px;
+    padding: 12px 16px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.35);
+    display: none;
+    gap: 16px;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+  .inspector.open { display: flex; }
+  .inspector h2 { margin: 0 0 4px; font-size: 14px; }
+  .inspector p { margin: 2px 0; font-size: 12px; color: #cbd5e1; }
+  .inspector code {
+    background: rgba(255, 255, 255, 0.12);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 11.5px;
+  }
+  .inspector-files {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .inspector-files a {
+    color: #93c5fd;
+    background: rgba(59, 130, 246, 0.16);
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-size: 11.5px;
+    text-decoration: none;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .inspector-files a:hover { background: rgba(59, 130, 246, 0.3); }
+  .inspector-close {
+    background: rgba(255, 255, 255, 0.12);
+    border: none;
+    color: #fff;
+    border-radius: 6px;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <h1>Kraken P3 / VCGen Branch Tree &amp; Timeline</h1>
+    <div class="legend">
+      <span class="leg-item leg-upstream">Upstream main</span>
+      <span class="leg-item leg-baseBranch">Frozen / base</span>
+      <span class="leg-item leg-mergeNode">Merge</span>
+      <span class="leg-item leg-activePR">Active PR (no 829c9468)</span>
+      <span class="leg-item leg-targetCommit">Target 829c9468</span>
+      <span class="leg-item leg-trackA">Track A: FMA3 &amp; speedups</span>
+      <span class="leg-item leg-trackB">Track B: Active VCGen</span>
+    </div>
+    <div class="controls">
+      <button type="button" data-zoom="1" class="active">100%</button>
+      <button type="button" data-zoom="0.75">75%</button>
+      <button type="button" data-zoom="0.55">55%</button>
+      <button type="button" id="btnFit">Fit Width</button>
+    </div>
+  </header>
+
+  <main class="viewport" id="viewport">
+    <div class="board-scale" id="boardScale">
+      <div class="board" id="board">
+        <svg class="edges-svg" id="edgesSvg"></svg>
+        <div class="col-guide" style="grid-column:2;grid-row:1 / span 5;"></div><div class="col-guide" style="grid-column:3;grid-row:1 / span 5;"></div><div class="col-guide" style="grid-column:4;grid-row:1 / span 5;"></div><div class="col-guide" style="grid-column:5;grid-row:1 / span 5;"></div><div class="col-guide is-target" style="grid-column:6;grid-row:1 / span 5;"></div><div class="col-guide" style="grid-column:7;grid-row:1 / span 5;"></div><div class="col-guide" style="grid-column:8;grid-row:1 / span 5;"></div><div class="col-guide" style="grid-column:9;grid-row:1 / span 5;"></div><div class="col-guide" style="grid-column:10;grid-row:1 / span 5;"></div><div class="col-guide" style="grid-column:11;grid-row:1 / span 5;"></div><div class="col-guide" style="grid-column:12;grid-row:1 / span 5;"></div><div class="col-guide" style="grid-column:13;grid-row:1 / span 5;"></div><div class="col-guide" style="grid-column:14;grid-row:1 / span 5;"></div><div class="col-guide" style="grid-column:15;grid-row:1 / span 5;"></div><div class="col-guide" style="grid-column:16;grid-row:1 / span 5;"></div>
+        <div class="band-divider" style="grid-column:1 / span 16;grid-row:3;"></div>
+        <div class="lane-label band-upstream" style="grid-column:1;grid-row:1;">
+      <span class="band-tag">AeneasVerif/kraken</span>
+      <span class="lane-name">Upstream main</span>
+    </div><div class="lane-label band-upstream" style="grid-column:1;grid-row:2;">
+      <span class="band-tag">AeneasVerif/kraken</span>
+      <span class="lane-name">Upstream PRs &amp; Nightly</span>
+    </div><div class="lane-label band-sgraf" style="grid-column:1;grid-row:3;">
+      <span class="band-tag">sgraf812/kraken</span>
+      <span class="lane-name">sgraf812 Trunk &amp; Track B (VCGen)</span>
+    </div><div class="lane-label band-sgraf" style="grid-column:1;grid-row:4;">
+      <span class="band-tag">sgraf812/kraken</span>
+      <span class="lane-name">Track A + B Merge</span>
+    </div><div class="lane-label band-sgraf" style="grid-column:1;grid-row:5;">
+      <span class="band-tag">sgraf812/kraken</span>
+      <span class="lane-name">Track A (FMA3 &amp; Speedups)</span>
+    </div>
+        
+      <button type="button"
+        class="node-card kind-upstream"
+        data-node-id="M_125"
+        style="grid-column:2;grid-row:1;">
+        <div class="node-head">
+          <span class="node-hash">881e959</span>
+          <span class="node-date">2026-07-22</span>
+        </div>
+        <div class="node-title">PR #125</div>
+        <div class="node-desc">Upstream base before estatem-kfold branched off</div>
+        <div class="node-badges"><span class="g-pill" title="G07_old_Examples_PR125.lean">G07 · old/Examples.lean</span></div>
+      </button>
+
+      <button type="button"
+        class="node-card kind-upstream"
+        data-node-id="M_131"
+        style="grid-column:3;grid-row:1;">
+        <div class="node-head">
+          <span class="node-hash">05cad40</span>
+          <span class="node-date">2026-08-03</span>
+        </div>
+        <div class="node-title">PR #131</div>
+        <div class="node-desc">Upstream snapshot where sgraf812/main froze</div>
+        <div class="node-badges"><span class="g-pill" title="G08_Examples_PR131_sg-main.lean">G08 · Examples.lean</span></div>
+      </button>
+
+      <button type="button"
+        class="node-card kind-baseBranch"
+        data-node-id="SG_MAIN"
+        style="grid-column:3;grid-row:3;">
+        <div class="node-head">
+          <span class="node-hash">05cad40</span>
+          <span class="node-date">2026-08-03</span>
+        </div>
+        <div class="node-title">sgraf812/main</div>
+        <div class="node-desc">Stale fork mirror of upstream PR #131</div>
+        <div class="node-badges"><span class="g-pill" title="G08_Examples_PR131_sg-main.lean">G08 · Examples.lean</span></div>
+      </button>
+
+      <button type="button"
+        class="node-card kind-upstream"
+        data-node-id="M_154"
+        style="grid-column:4;grid-row:1;">
+        <div class="node-head">
+          <span class="node-hash">2c56cbd</span>
+          <span class="node-date">2026-08-17</span>
+        </div>
+        <div class="node-title">PR #154</div>
+        <div class="node-desc">X64/AArch64 split, generic layout, ecancel</div>
+        <div class="node-badges"><span class="g-pill" title="G09_Examples_PR154.lean">G09 · Examples.lean</span></div>
+      </button>
+
+      <button type="button"
+        class="node-card kind-baseBranch"
+        data-node-id="EST"
+        style="grid-column:4;grid-row:3;">
+        <div class="node-head">
+          <span class="node-hash">d68f0a4</span>
+          <span class="node-date">2026-08-14</span>
+        </div>
+        <div class="node-title">estatem-kfold</div>
+        <div class="node-desc">Open/closed Program.wp (wpOpen/wpClosed), Program.WF, block extraction (+154 off 881e959)</div>
+        <div class="node-badges"><span class="g-pill" title="G01_old_P3_estatem-kfold.lean">G01 · old/P3.lean</span></div>
+      </button>
+
+      <button type="button"
+        class="node-card kind-mergeNode"
+        data-node-id="M23B"
+        style="grid-column:5;grid-row:3;">
+        <div class="node-head">
+          <span class="node-hash">23b6409</span>
+          <span class="node-date">2026-09-10</span>
+        </div>
+        <div class="node-title">23b6409 (Merge)</div>
+        <div class="node-desc">Merge estatem-kfold with upstream X64/AArch64 split &amp; ecancel</div>
+        <div class="node-badges"><span class="g-pill" title="G02_P3_23b6409_829c9468.lean">G02 · P3.lean</span><span class="g-pill" title="G10_Examples_23b6409_829c9468_fma3_nightly-10-14_speedups.lean">G10 · Examples.lean</span></div>
+      </button>
+
+      <button type="button"
+        class="node-card kind-targetCommit"
+        data-node-id="C829"
+        style="grid-column:6;grid-row:3;">
+        <div class="node-head">
+          <span class="node-hash">829c9468</span>
+          <span class="node-date">2026-09-18</span>
+        </div>
+        <div class="node-title">829c9468 · TARGET</div>
+        <div class="node-desc">Exact fork point: Algebraic ecancel (SepOps) + solveSepSplit frameproc; separation triples &amp; byte/slice VCGen examples</div>
+        <div class="node-badges"><span class="g-pill" title="G02_P3_23b6409_829c9468.lean">G02 · P3.lean</span><span class="g-pill" title="G10_Examples_23b6409_829c9468_fma3_nightly-10-14_speedups.lean">G10 · Examples.lean</span></div>
+      </button>
+
+      <button type="button"
+        class="node-card kind-upstream"
+        data-node-id="M_160"
+        style="grid-column:7;grid-row:1;">
+        <div class="node-head">
+          <span class="node-hash">30f5a5f</span>
+          <span class="node-date">2026-09-25</span>
+        </div>
+        <div class="node-title">PR #160</div>
+        <div class="node-desc">Merge toolchain-nightly-2026-09-21 &amp; Lean module system</div>
+        <div class="node-badges"><span class="g-pill" title="G11_Examples_PR160_nightly-09-21_sepwp_63c72ed_7cfd503.lean">G11 · Examples.lean</span></div>
+      </button>
+
+      <button type="button"
+        class="node-card kind-baseBranch"
+        data-node-id="TN"
+        style="grid-column:7;grid-row:2;">
+        <div class="node-head">
+          <span class="node-hash">1045c33</span>
+          <span class="node-date">2026-09-25</span>
+        </div>
+        <div class="node-title">toolchain-nightly-2026-09-21</div>
+        <div class="node-desc">Adopt Lean module system &amp; bump to nightly-2026-09-21 (+75 ahead of 05cad40)</div>
+        <div class="node-badges"><span class="g-pill" title="G11_Examples_PR160_nightly-09-21_sepwp_63c72ed_7cfd503.lean">G11 · Examples.lean</span></div>
+      </button>
+
+      <button type="button"
+        class="node-card kind-activePR"
+        data-node-id="SEP"
+        style="grid-column:8;grid-row:2;">
+        <div class="node-head">
+          <span class="node-hash">12371fd</span>
+          <span class="node-date">2026-09-28</span>
+        </div>
+        <div class="node-title">sgraf812:sepwp · PR #161</div>
+        <div class="node-desc">Separation-logic WP (MProp) &amp; frame inference prototype (alu_mem_example); no 829c9468</div>
+        <div class="node-badges"><span class="g-pill" title="G11_Examples_PR160_nightly-09-21_sepwp_63c72ed_7cfd503.lean">G11 · Examples.lean</span></div>
+      </button>
+
+      <button type="button"
+        class="node-card kind-mergeNode"
+        data-node-id="M63C"
+        style="grid-column:8;grid-row:3;">
+        <div class="node-head">
+          <span class="node-hash">63c72ed</span>
+          <span class="node-date">2026-09-29</span>
+        </div>
+        <div class="node-title">63c72ed (Merge)</div>
+        <div class="node-desc">Adopt Lean module system &amp; nightly-2026-09-21 over 829c9468</div>
+        <div class="node-badges"><span class="g-pill" title="G11_Examples_PR160_nightly-09-21_sepwp_63c72ed_7cfd503.lean">G11 · Examples.lean</span></div>
+      </button>
+
+      <button type="button"
+        class="node-card kind-mergeNode"
+        data-node-id="M7CF"
+        style="grid-column:9;grid-row:3;">
+        <div class="node-head">
+          <span class="node-hash">7cfd503</span>
+          <span class="node-date">2026-09-29</span>
+        </div>
+        <div class="node-title">7cfd503 (Merge)</div>
+        <div class="node-desc">Pull sepwp prototype (PR #161) over the baseline trunk</div>
+        <div class="node-badges"><span class="g-pill" title="G11_Examples_PR160_nightly-09-21_sepwp_63c72ed_7cfd503.lean">G11 · Examples.lean</span></div>
+      </button>
+
+      <button type="button"
+        class="node-card kind-trackA"
+        data-node-id="FMA3"
+        style="grid-column:9;grid-row:5;">
+        <div class="node-head">
+          <span class="node-hash">9209b11</span>
+          <span class="node-date">2026-09-30</span>
+        </div>
+        <div class="node-title">sg/fma3-default-limits</div>
+        <div class="node-desc">Prove ff_scalarproduct_float_fma3 at default solver limits + SbrNegOdd64 (+11 ahead of 829c9468)</div>
+        <div class="node-badges"><span class="g-pill" title="G03_P3_fma3_nightly-10-14.lean">G03 · P3.lean</span><span class="g-pill" title="G10_Examples_23b6409_829c9468_fma3_nightly-10-14_speedups.lean">G10 · Examples.lean</span></div>
+      </button>
+
+      <button type="button"
+        class="node-card kind-upstream"
+        data-node-id="M_165"
+        style="grid-column:10;grid-row:1;">
+        <div class="node-head">
+          <span class="node-hash">72f3a7a</span>
+          <span class="node-date">2026-10-20</span>
+        </div>
+        <div class="node-title">PR #165</div>
+        <div class="node-desc">sgraf812/wp-foundation merged to upstream</div>
+        <div class="node-badges"><span class="g-pill" title="G12_Examples_PR165_PR179_PR195-conj-wp.lean">G12 · Examples.lean</span></div>
+      </button>
+
+      <button type="button"
+        class="node-card kind-trackA"
+        data-node-id="N1014"
+        style="grid-column:10;grid-row:5;">
+        <div class="node-head">
+          <span class="node-hash">9743c3a</span>
+          <span class="node-date">2026-10-16</span>
+        </div>
+        <div class="node-title">sg/nightly-2026-10-14</div>
+        <div class="node-desc">Bump to nightly-2026-10-14; indirect memory calls; trim MachineWP deps (+12 / +23)</div>
+        <div class="node-badges"><span class="g-pill" title="G03_P3_fma3_nightly-10-14.lean">G03 · P3.lean</span><span class="g-pill" title="G10_Examples_23b6409_829c9468_fma3_nightly-10-14_speedups.lean">G10 · Examples.lean</span></div>
+      </button>
+
+      <button type="button"
+        class="node-card kind-activePR"
+        data-node-id="PR_166"
+        style="grid-column:11;grid-row:2;">
+        <div class="node-head">
+          <span class="node-hash">4989e1c</span>
+          <span class="node-date">2026-10-20</span>
+        </div>
+        <div class="node-title">sgraf812/statewp · PR #166</div>
+        <div class="node-desc">Program.WP vcgen instance (kvcgen64), Host/step1, nightly-2026-10-20 (+5 ahead of 72f3a7a; no 829c9468)</div>
+        <div class="node-badges"><span class="g-pill" title="G13_Examples_PR166-statewp.lean">G13 · Examples.lean</span></div>
+      </button>
+
+      <button type="button"
+        class="node-card kind-trackA"
+        data-node-id="SPEED"
+        style="grid-column:11;grid-row:5;">
+        <div class="node-head">
+          <span class="node-hash">a443d2c</span>
+          <span class="node-date">2026-10-19</span>
+        </div>
+        <div class="node-title">sg/upstream-speedups</div>
+        <div class="node-desc">Clean simp/grind normal forms, alignment/bounds &amp; faster CFG VC discharge (+14 / +37)</div>
+        <div class="node-badges"><span class="g-pill" title="G04_P3_speedups.lean">G04 · P3.lean</span><span class="g-pill" title="G10_Examples_23b6409_829c9468_fma3_nightly-10-14_speedups.lean">G10 · Examples.lean</span></div>
+      </button>
+
+      <button type="button"
+        class="node-card kind-trackB"
+        data-node-id="DROP"
+        style="grid-column:12;grid-row:3;">
+        <div class="node-head">
+          <span class="node-hash">bc85a6a</span>
+          <span class="node-date">2026-10-27</span>
+        </div>
+        <div class="node-title">sg/drop-framewp</div>
+        <div class="node-desc">CFG-invariant Program.wp (indirect jumps, FMA3, nightly-10-26); drops old sep WP &amp; frame inf (+179)</div>
+        <div class="node-badges"><span class="g-pill" title="G05_WP_P3_drop-framewp_dcc8cc1_merge-vcgen.lean">G05 · WP/P3.lean</span><span class="g-pill" title="G14_Examples_drop-framewp_dcc8cc1_merge-vcgen.lean">G14 · Examples.lean</span></div>
+      </button>
+
+      <button type="button"
+        class="node-card kind-mergeNode"
+        data-node-id="DCC"
+        style="grid-column:12;grid-row:4;">
+        <div class="node-head">
+          <span class="node-hash">dcc8cc1</span>
+          <span class="node-date">2026-10-26</span>
+        </div>
+        <div class="node-title">dcc8cc1 (Merge)</div>
+        <div class="node-desc">Merge early vcgen (fe604b6) into sg/mem-mapped</div>
+        <div class="node-badges"><span class="g-pill" title="G05_WP_P3_drop-framewp_dcc8cc1_merge-vcgen.lean">G05 · WP/P3.lean</span><span class="g-pill" title="G14_Examples_drop-framewp_dcc8cc1_merge-vcgen.lean">G14 · Examples.lean</span></div>
+      </button>
+
+      <button type="button"
+        class="node-card kind-trackB"
+        data-node-id="MERGE_VC"
+        style="grid-column:13;grid-row:4;">
+        <div class="node-head">
+          <span class="node-hash">3696f0b</span>
+          <span class="node-date">2026-10-27</span>
+        </div>
+        <div class="node-title">sg/merge-vcgen</div>
+        <div class="node-desc">Port Butterflies/FmulSse to Program.wp &amp; unify Track A with drop-framewp (+26 / +205)</div>
+        <div class="node-badges"><span class="g-pill" title="G05_WP_P3_drop-framewp_dcc8cc1_merge-vcgen.lean">G05 · WP/P3.lean</span><span class="g-pill" title="G14_Examples_drop-framewp_dcc8cc1_merge-vcgen.lean">G14 · Examples.lean</span></div>
+      </button>
+
+      <button type="button"
+        class="node-card kind-upstream"
+        data-node-id="M_179"
+        style="grid-column:14;grid-row:1;">
+        <div class="node-head">
+          <span class="node-hash">6064eec</span>
+          <span class="node-date">2026-11-02</span>
+        </div>
+        <div class="node-title">PR #179</div>
+        <div class="node-desc">x64-fix-avx-access (base of conj-wp)</div>
+        <div class="node-badges"><span class="g-pill" title="G12_Examples_PR165_PR179_PR195-conj-wp.lean">G12 · Examples.lean</span></div>
+      </button>
+
+      <button type="button"
+        class="node-card kind-upstream"
+        data-node-id="M_247"
+        style="grid-column:15;grid-row:1;">
+        <div class="node-head">
+          <span class="node-hash">0fccb2d</span>
+          <span class="node-date">2026-11-11</span>
+        </div>
+        <div class="node-title">PR #247</div>
+        <div class="node-desc">Rep-string, delaborators, AArch64 parsers (last synced to vcgen)</div>
+        <div class="node-badges"><span class="g-pill" title="G15_Examples_PR247_main.lean">G15 · Examples.lean</span></div>
+      </button>
+
+      <button type="button"
+        class="node-card kind-activePR"
+        data-node-id="PR_195"
+        style="grid-column:15;grid-row:2;">
+        <div class="node-head">
+          <span class="node-hash">f5a85a1</span>
+          <span class="node-date">2026-11-05</span>
+        </div>
+        <div class="node-title">sgraf812/conj-wp · PR #195</div>
+        <div class="node-desc">Syntax-driven conjunctive Program.wp (StepIn, Natural, Until), SP call inv, rec even/odd (+25; no 829c9468)</div>
+        <div class="node-badges"><span class="g-pill" title="G12_Examples_PR165_PR179_PR195-conj-wp.lean">G12 · Examples.lean</span></div>
+      </button>
+
+      <button type="button"
+        class="node-card kind-upstream"
+        data-node-id="M_HEAD"
+        style="grid-column:16;grid-row:1;">
+        <div class="node-head">
+          <span class="node-hash">b44bf3f</span>
+          <span class="node-date">2026-11-16</span>
+        </div>
+        <div class="node-title">AeneasVerif/main</div>
+        <div class="node-desc">Latest upstream main: layout &amp; parser fixes (+10 ahead of 0fccb2d; +245 ahead of 05cad40)</div>
+        <div class="node-badges"><span class="g-pill" title="G15_Examples_PR247_main.lean">G15 · Examples.lean</span></div>
+      </button>
+
+      <button type="button"
+        class="node-card kind-trackB"
+        data-node-id="VCGEN"
+        style="grid-column:16;grid-row:3;">
+        <div class="node-head">
+          <span class="node-hash">6c2f048</span>
+          <span class="node-date">2026-11-12</span>
+        </div>
+        <div class="node-title">vcgen</div>
+        <div class="node-desc">Main active VCGen branch: ChangingFrames/ManyCalls specs + upstream sync (+152 / +331)</div>
+        <div class="node-badges"><span class="g-pill" title="G06_WP_P3_vcgen.lean">G06 · WP/P3.lean</span><span class="g-pill" title="G16_Examples_vcgen.lean">G16 · Examples.lean</span></div>
+      </button>
+        <div class="tl-corner" style="grid-column:1;grid-row:6;">
+          <strong>Timeline (2026)</strong>
+          <span>Committer dates (L → R)</span>
+        </div>
+        <div class="tl-cell" style="grid-column:2;grid-row:6;">
+      <div class="tl-dot"></div>
+      <div class="tl-date">2026-07-22</div>
+      <div class="tl-sub">PR #125</div>
+    </div>
+<div class="tl-cell" style="grid-column:3;grid-row:6;">
+      <div class="tl-dot"></div>
+      <div class="tl-date">2026-08-03</div>
+      <div class="tl-sub">PR #131 / freeze</div>
+    </div>
+<div class="tl-cell" style="grid-column:4;grid-row:6;">
+      <div class="tl-dot"></div>
+      <div class="tl-date">2026-08-14..17</div>
+      <div class="tl-sub">estatem / PR #154</div>
+    </div>
+<div class="tl-cell" style="grid-column:5;grid-row:6;">
+      <div class="tl-dot"></div>
+      <div class="tl-date">2026-09-10</div>
+      <div class="tl-sub">Merge 23b6409</div>
+    </div>
+<div class="tl-cell is-target" style="grid-column:6;grid-row:6;">
+      <div class="tl-dot"></div>
+      <div class="tl-date">2026-09-18</div>
+      <div class="tl-sub">829c9468 (TARGET)</div>
+    </div>
+<div class="tl-cell" style="grid-column:7;grid-row:6;">
+      <div class="tl-dot"></div>
+      <div class="tl-date">2026-09-25</div>
+      <div class="tl-sub">nightly-09-21 / #160</div>
+    </div>
+<div class="tl-cell" style="grid-column:8;grid-row:6;">
+      <div class="tl-dot"></div>
+      <div class="tl-date">2026-09-28..29</div>
+      <div class="tl-sub">sepwp / 63c72ed</div>
+    </div>
+<div class="tl-cell" style="grid-column:9;grid-row:6;">
+      <div class="tl-dot"></div>
+      <div class="tl-date">2026-09-29..30</div>
+      <div class="tl-sub">7cfd503 / FMA3</div>
+    </div>
+<div class="tl-cell" style="grid-column:10;grid-row:6;">
+      <div class="tl-dot"></div>
+      <div class="tl-date">2026-10-16..20</div>
+      <div class="tl-sub">nightly-10-14 / #165</div>
+    </div>
+<div class="tl-cell" style="grid-column:11;grid-row:6;">
+      <div class="tl-dot"></div>
+      <div class="tl-date">2026-10-19..20</div>
+      <div class="tl-sub">speedups / statewp</div>
+    </div>
+<div class="tl-cell" style="grid-column:12;grid-row:6;">
+      <div class="tl-dot"></div>
+      <div class="tl-date">2026-10-26..27</div>
+      <div class="tl-sub">dcc8cc1 / drop-framewp</div>
+    </div>
+<div class="tl-cell" style="grid-column:13;grid-row:6;">
+      <div class="tl-dot"></div>
+      <div class="tl-date">2026-10-27</div>
+      <div class="tl-sub">merge-vcgen</div>
+    </div>
+<div class="tl-cell" style="grid-column:14;grid-row:6;">
+      <div class="tl-dot"></div>
+      <div class="tl-date">2026-11-02</div>
+      <div class="tl-sub">PR #179</div>
+    </div>
+<div class="tl-cell" style="grid-column:15;grid-row:6;">
+      <div class="tl-dot"></div>
+      <div class="tl-date">2026-11-05..11</div>
+      <div class="tl-sub">conj-wp / PR #247</div>
+    </div>
+<div class="tl-cell" style="grid-column:16;grid-row:6;">
+      <div class="tl-dot"></div>
+      <div class="tl-date">2026-11-12..16</div>
+      <div class="tl-sub">vcgen / main HEAD</div>
+    </div>
+      </div>
+    </div>
+  </main>
+
+  <section class="inspector" id="inspector">
+    <div>
+      <h2 id="insTitle"></h2>
+      <p id="insMeta"></p>
+      <p id="insDesc"></p>
+      <div class="inspector-files" id="insFiles"></div>
+    </div>
+    <button type="button" class="inspector-close" id="insClose">Close</button>
+  </section>
+
+<script>
+const EDGES = [{"from":"M_125","to":"M_131","label":"+29"},{"from":"M_131","to":"M_154"},{"from":"M_154","to":"M_160"},{"from":"M_160","to":"M_165"},{"from":"M_165","to":"M_179"},{"from":"M_179","to":"M_247"},{"from":"M_247","to":"M_HEAD","label":"+10"},{"from":"M_165","to":"PR_166","label":"+5"},{"from":"M_179","to":"PR_195","label":"+25"},{"from":"M_131","to":"SG_MAIN","label":"freeze","dashed":true},{"from":"M_125","to":"EST","label":"+154"},{"from":"M_154","to":"TN"},{"from":"TN","to":"M_160","label":"PR #160","dashed":true},{"from":"M_160","to":"SEP","label":"+5"},{"from":"EST","to":"M23B"},{"from":"M_154","to":"M23B","label":"merge","dashed":true},{"from":"M23B","to":"C829","label":"+22"},{"from":"C829","to":"FMA3","label":"+11"},{"from":"FMA3","to":"N1014","label":"+12"},{"from":"N1014","to":"SPEED","label":"+14"},{"from":"C829","to":"M63C","label":"+21"},{"from":"TN","to":"M63C","label":"merge","dashed":true},{"from":"M63C","to":"M7CF"},{"from":"SEP","to":"M7CF","label":"merge","dashed":true},{"from":"M7CF","to":"DROP"},{"from":"DROP","to":"VCGEN","label":"+152"},{"from":"M_247","to":"VCGEN","label":"merge 339acd1","dashed":true},{"from":"FMA3","to":"DCC"},{"from":"DCC","to":"MERGE_VC"},{"from":"DROP","to":"MERGE_VC","label":"merge","dashed":true}];
+const NODES_META = [{"id":"M_125","commit":"881e959","title":"PR #125","desc":"Upstream base before estatem-kfold branched off","kind":"upstream","authorDate":"2026-07-22","committerDate":"2026-07-22","subject":"Merge pull request #125 from zrlk/sse-first","groups":[{"gname":"G07","fname":"G07_old_Examples_PR125.lean","shortPath":"old/Examples.lean","fullPath":"Kraken/Examples/Examples.lean","lines":597}]},{"id":"M_131","commit":"05cad40","title":"PR #131","desc":"Upstream snapshot where sgraf812/main froze","kind":"upstream","authorDate":"2026-08-03","committerDate":"2026-08-03","subject":"Merge pull request #131 from zrlk/dump-zmms","groups":[{"gname":"G08","fname":"G08_Examples_PR131_sg-main.lean","shortPath":"Examples.lean","fullPath":"Kraken/X64/Examples/Examples.lean","lines":554}]},{"id":"SG_MAIN","commit":"05cad40","title":"sgraf812/main","desc":"Stale fork mirror of upstream PR #131","kind":"baseBranch","authorDate":"2026-08-03","committerDate":"2026-08-03","subject":"Merge pull request #131 from zrlk/dump-zmms","groups":[{"gname":"G08","fname":"G08_Examples_PR131_sg-main.lean","shortPath":"Examples.lean","fullPath":"Kraken/X64/Examples/Examples.lean","lines":554}]},{"id":"M_154","commit":"2c56cbd","title":"PR #154","desc":"X64/AArch64 split, generic layout, ecancel","kind":"upstream","authorDate":"2026-08-17","committerDate":"2026-08-17","subject":"Merge pull request #154 from lukaszobernig/aarch64","groups":[{"gname":"G09","fname":"G09_Examples_PR154.lean","shortPath":"Examples.lean","fullPath":"Kraken/X64/Examples/Examples.lean","lines":475}]},{"id":"EST","commit":"d68f0a4","title":"estatem-kfold","desc":"Open/closed Program.wp (wpOpen/wpClosed), Program.WF, block extraction (+154 off 881e959)","kind":"baseBranch","authorDate":"2026-08-14","committerDate":"2026-08-14","subject":"Inline the closed instance's transformer","groups":[{"gname":"G01","fname":"G01_old_P3_estatem-kfold.lean","shortPath":"old/P3.lean","fullPath":"Kraken/Examples/P3.lean","lines":125}]},{"id":"M23B","commit":"23b6409","title":"23b6409 (Merge)","desc":"Merge estatem-kfold with upstream X64/AArch64 split & ecancel","kind":"mergeNode","authorDate":"2026-09-10","committerDate":"2026-09-10","subject":"Merge origin/main: the X64/AArch64 split, the generic layout, and ecancel","groups":[{"gname":"G02","fname":"G02_P3_23b6409_829c9468.lean","shortPath":"P3.lean","fullPath":"Kraken/X64/Examples/P3.lean","lines":104},{"gname":"G10","fname":"G10_Examples_23b6409_829c9468_fma3_nightly-10-14_speedups.lean","shortPath":"Examples.lean","fullPath":"Kraken/X64/Examples/Examples.lean","lines":482}]},{"id":"C829","commit":"829c9468","title":"829c9468 · TARGET","desc":"Exact fork point: Algebraic ecancel (SepOps) + solveSepSplit frameproc; separation triples & byte/slice VCGen examples","kind":"targetCommit","authorDate":"2026-09-18","committerDate":"2026-09-18","subject":"ecancel over an algebra record; the frameproc calls solveSepSplit","groups":[{"gname":"G02","fname":"G02_P3_23b6409_829c9468.lean","shortPath":"P3.lean","fullPath":"Kraken/X64/Examples/P3.lean","lines":104},{"gname":"G10","fname":"G10_Examples_23b6409_829c9468_fma3_nightly-10-14_speedups.lean","shortPath":"Examples.lean","fullPath":"Kraken/X64/Examples/Examples.lean","lines":482}]},{"id":"M_160","commit":"30f5a5f","title":"PR #160","desc":"Merge toolchain-nightly-2026-09-21 & Lean module system","kind":"upstream","authorDate":"2026-09-25","committerDate":"2026-09-25","subject":"Merge pull request #160 from sgraf812/toolchain-nightly-2026-09-21","groups":[{"gname":"G11","fname":"G11_Examples_PR160_nightly-09-21_sepwp_63c72ed_7cfd503.lean","shortPath":"Examples.lean","fullPath":"Kraken/X64/Examples/Examples.lean","lines":476}]},{"id":"TN","commit":"1045c33","title":"toolchain-nightly-2026-09-21","desc":"Adopt Lean module system & bump to nightly-2026-09-21 (+75 ahead of 05cad40)","kind":"baseBranch","authorDate":"2026-09-25","committerDate":"2026-09-25","subject":"Merge branch 'main' into toolchain-nightly-2026-09-21","groups":[{"gname":"G11","fname":"G11_Examples_PR160_nightly-09-21_sepwp_63c72ed_7cfd503.lean","shortPath":"Examples.lean","fullPath":"Kraken/X64/Examples/Examples.lean","lines":476}]},{"id":"SEP","commit":"12371fd","title":"sgraf812:sepwp · PR #161","desc":"Separation-logic WP (MProp) & frame inference prototype (alu_mem_example); no 829c9468","kind":"activePR","authorDate":"2026-09-22","committerDate":"2026-09-28","subject":"alu_mem_example on the separation wp","groups":[{"gname":"G11","fname":"G11_Examples_PR160_nightly-09-21_sepwp_63c72ed_7cfd503.lean","shortPath":"Examples.lean","fullPath":"Kraken/X64/Examples/Examples.lean","lines":476}]},{"id":"M63C","commit":"63c72ed","title":"63c72ed (Merge)","desc":"Adopt Lean module system & nightly-2026-09-21 over 829c9468","kind":"mergeNode","authorDate":"2026-09-29","committerDate":"2026-09-29","subject":"Merge origin/main: the module system and nightly-2026-09-21","groups":[{"gname":"G11","fname":"G11_Examples_PR160_nightly-09-21_sepwp_63c72ed_7cfd503.lean","shortPath":"Examples.lean","fullPath":"Kraken/X64/Examples/Examples.lean","lines":476}]},{"id":"M7CF","commit":"7cfd503","title":"7cfd503 (Merge)","desc":"Pull sepwp prototype (PR #161) over the baseline trunk","kind":"mergeNode","authorDate":"2026-09-29","committerDate":"2026-09-29","subject":"Merge fork/sepwp: the separation wp over the baseline burst","groups":[{"gname":"G11","fname":"G11_Examples_PR160_nightly-09-21_sepwp_63c72ed_7cfd503.lean","shortPath":"Examples.lean","fullPath":"Kraken/X64/Examples/Examples.lean","lines":476}]},{"id":"FMA3","commit":"9209b11","title":"sg/fma3-default-limits","desc":"Prove ff_scalarproduct_float_fma3 at default solver limits + SbrNegOdd64 (+11 ahead of 829c9468)","kind":"trackA","authorDate":"2026-09-30","committerDate":"2026-09-30","subject":"Replace cfg_label_facts by evaluation in grind's normalizer","groups":[{"gname":"G03","fname":"G03_P3_fma3_nightly-10-14.lean","shortPath":"P3.lean","fullPath":"Kraken/X64/Examples/P3.lean","lines":95},{"gname":"G10","fname":"G10_Examples_23b6409_829c9468_fma3_nightly-10-14_speedups.lean","shortPath":"Examples.lean","fullPath":"Kraken/X64/Examples/Examples.lean","lines":482}]},{"id":"M_165","commit":"72f3a7a","title":"PR #165","desc":"sgraf812/wp-foundation merged to upstream","kind":"upstream","authorDate":"2026-10-20","committerDate":"2026-10-20","subject":"Merge pull request #165 from AeneasVerif/sgraf812/wp-foundation","groups":[{"gname":"G12","fname":"G12_Examples_PR165_PR179_PR195-conj-wp.lean","shortPath":"Examples.lean","fullPath":"Kraken/X64/Examples/Examples.lean","lines":476}]},{"id":"N1014","commit":"9743c3a","title":"sg/nightly-2026-10-14","desc":"Bump to nightly-2026-10-14; indirect memory calls; trim MachineWP deps (+12 / +23)","kind":"trackA","authorDate":"2026-10-16","committerDate":"2026-10-16","subject":"Toolchain nightly-2026-10-14","groups":[{"gname":"G03","fname":"G03_P3_fma3_nightly-10-14.lean","shortPath":"P3.lean","fullPath":"Kraken/X64/Examples/P3.lean","lines":95},{"gname":"G10","fname":"G10_Examples_23b6409_829c9468_fma3_nightly-10-14_speedups.lean","shortPath":"Examples.lean","fullPath":"Kraken/X64/Examples/Examples.lean","lines":482}]},{"id":"PR_166","commit":"4989e1c","title":"sgraf812/statewp · PR #166","desc":"Program.WP vcgen instance (kvcgen64), Host/step1, nightly-2026-10-20 (+5 ahead of 72f3a7a; no 829c9468)","kind":"activePR","authorDate":"2026-10-20","committerDate":"2026-10-20","subject":"Toolchain: nightly-2026-10-20","groups":[{"gname":"G13","fname":"G13_Examples_PR166-statewp.lean","shortPath":"Examples.lean","fullPath":"Kraken/X64/Examples/Examples.lean","lines":478}]},{"id":"SPEED","commit":"a443d2c","title":"sg/upstream-speedups","desc":"Clean simp/grind normal forms, alignment/bounds & faster CFG VC discharge (+14 / +37)","kind":"trackA","authorDate":"2026-10-16","committerDate":"2026-10-19","subject":"SbrNegOdd64: state the loop offset over Nat","groups":[{"gname":"G04","fname":"G04_P3_speedups.lean","shortPath":"P3.lean","fullPath":"Kraken/X64/Examples/P3.lean","lines":97},{"gname":"G10","fname":"G10_Examples_23b6409_829c9468_fma3_nightly-10-14_speedups.lean","shortPath":"Examples.lean","fullPath":"Kraken/X64/Examples/Examples.lean","lines":482}]},{"id":"DROP","commit":"bc85a6a","title":"sg/drop-framewp","desc":"CFG-invariant Program.wp (indirect jumps, FMA3, nightly-10-26); drops old sep WP & frame inf (+179)","kind":"trackB","authorDate":"2026-10-27","committerDate":"2026-10-27","subject":"Remove the separation wp and its frame inference","groups":[{"gname":"G05","fname":"G05_WP_P3_drop-framewp_dcc8cc1_merge-vcgen.lean","shortPath":"WP/P3.lean","fullPath":"Kraken/X64/Examples/WP/P3.lean","lines":65},{"gname":"G14","fname":"G14_Examples_drop-framewp_dcc8cc1_merge-vcgen.lean","shortPath":"Examples.lean","fullPath":"Kraken/X64/Examples/Examples.lean","lines":479}]},{"id":"DCC","commit":"dcc8cc1","title":"dcc8cc1 (Merge)","desc":"Merge early vcgen (fe604b6) into sg/mem-mapped","kind":"mergeNode","authorDate":"2026-10-26","committerDate":"2026-10-26","subject":"Merge kraken vcgen (fe604b6) into sg/mem-mapped","groups":[{"gname":"G05","fname":"G05_WP_P3_drop-framewp_dcc8cc1_merge-vcgen.lean","shortPath":"WP/P3.lean","fullPath":"Kraken/X64/Examples/WP/P3.lean","lines":65},{"gname":"G14","fname":"G14_Examples_drop-framewp_dcc8cc1_merge-vcgen.lean","shortPath":"Examples.lean","fullPath":"Kraken/X64/Examples/Examples.lean","lines":479}]},{"id":"MERGE_VC","commit":"3696f0b","title":"sg/merge-vcgen","desc":"Port Butterflies/FmulSse to Program.wp & unify Track A with drop-framewp (+26 / +205)","kind":"trackB","authorDate":"2026-10-27","committerDate":"2026-10-27","subject":"Merge branch 'sg/drop-framewp' into sg/merge-vcgen","groups":[{"gname":"G05","fname":"G05_WP_P3_drop-framewp_dcc8cc1_merge-vcgen.lean","shortPath":"WP/P3.lean","fullPath":"Kraken/X64/Examples/WP/P3.lean","lines":65},{"gname":"G14","fname":"G14_Examples_drop-framewp_dcc8cc1_merge-vcgen.lean","shortPath":"Examples.lean","fullPath":"Kraken/X64/Examples/Examples.lean","lines":479}]},{"id":"M_179","commit":"6064eec","title":"PR #179","desc":"x64-fix-avx-access (base of conj-wp)","kind":"upstream","authorDate":"2026-11-02","committerDate":"2026-11-02","subject":"Merge pull request #179 from ctiller/x64-fix-avx-access","groups":[{"gname":"G12","fname":"G12_Examples_PR165_PR179_PR195-conj-wp.lean","shortPath":"Examples.lean","fullPath":"Kraken/X64/Examples/Examples.lean","lines":476}]},{"id":"M_247","commit":"0fccb2d","title":"PR #247","desc":"Rep-string, delaborators, AArch64 parsers (last synced to vcgen)","kind":"upstream","authorDate":"2026-11-11","committerDate":"2026-11-11","subject":"Merge pull request #247 from tcoratger/x64-rep-addr32-zero","groups":[{"gname":"G15","fname":"G15_Examples_PR247_main.lean","shortPath":"Examples.lean","fullPath":"Kraken/X64/Examples/Examples.lean","lines":532}]},{"id":"PR_195","commit":"f5a85a1","title":"sgraf812/conj-wp · PR #195","desc":"Syntax-driven conjunctive Program.wp (StepIn, Natural, Until), SP call inv, rec even/odd (+25; no 829c9468)","kind":"activePR","authorDate":"2026-11-05","committerDate":"2026-11-05","subject":"Merge branch 'main' into sgraf812/conj-wp","groups":[{"gname":"G12","fname":"G12_Examples_PR165_PR179_PR195-conj-wp.lean","shortPath":"Examples.lean","fullPath":"Kraken/X64/Examples/Examples.lean","lines":476}]},{"id":"M_HEAD","commit":"b44bf3f","title":"AeneasVerif/main","desc":"Latest upstream main: layout & parser fixes (+10 ahead of 0fccb2d; +245 ahead of 05cad40)","kind":"upstream","authorDate":"2026-11-16","committerDate":"2026-11-16","subject":"Merge pull request #230 from AeneasVerif/stack/layout-size-correct","groups":[{"gname":"G15","fname":"G15_Examples_PR247_main.lean","shortPath":"Examples.lean","fullPath":"Kraken/X64/Examples/Examples.lean","lines":532}]},{"id":"VCGEN","commit":"6c2f048","title":"vcgen","desc":"Main active VCGen branch: ChangingFrames/ManyCalls specs + upstream sync (+152 / +331)","kind":"trackB","authorDate":"2026-11-12","committerDate":"2026-11-12","subject":"Make the ManyCalls callee write a fixed location","groups":[{"gname":"G06","fname":"G06_WP_P3_vcgen.lean","shortPath":"WP/P3.lean","fullPath":"Kraken/X64/Examples/WP/P3.lean","lines":61},{"gname":"G16","fname":"G16_Examples_vcgen.lean","shortPath":"Examples.lean","fullPath":"Kraken/X64/Examples/Examples.lean","lines":535}]}];
+const metaMap = new Map(NODES_META.map(n => [n.id, n]));
+
+const board = document.getElementById("board");
+const svg = document.getElementById("edgesSvg");
+const boardScale = document.getElementById("boardScale");
+const viewport = document.getElementById("viewport");
+
+let currentZoom = 1;
+let activeId = null;
+
+function applyZoom(z) {
+  currentZoom = z;
+  boardScale.style.transform = `scale(${z})`;
+  boardScale.style.width = `${board.offsetWidth * z}px`;
+  boardScale.style.height = `${board.offsetHeight * z}px`;
+  document.querySelectorAll(".controls button[data-zoom]").forEach(btn => {
+    btn.classList.toggle("active", Number(btn.dataset.zoom) === z);
+  });
+}
+
+document.querySelectorAll(".controls button[data-zoom]").forEach(btn => {
+  btn.addEventListener("click", () => applyZoom(Number(btn.dataset.zoom)));
+});
+document.getElementById("btnFit").addEventListener("click", () => {
+  const avail = viewport.clientWidth - 36;
+  const fit = Math.min(1, Math.max(0.3, avail / board.offsetWidth));
+  applyZoom(Number(fit.toFixed(2)));
+});
+
+function boxRel(el) {
+  const bRect = board.getBoundingClientRect();
+  const r = el.getBoundingClientRect();
+  return {
+    left: (r.left - bRect.left) / currentZoom,
+    right: (r.right - bRect.left) / currentZoom,
+    top: (r.top - bRect.top) / currentZoom,
+    bottom: (r.bottom - bRect.top) / currentZoom,
+    cx: ((r.left + r.right) / 2 - bRect.left) / currentZoom,
+    cy: ((r.top + r.bottom) / 2 - bRect.top) / currentZoom,
+  };
+}
+
+function drawEdges() {
+  const w = board.scrollWidth;
+  const h = board.scrollHeight;
+  svg.setAttribute("width", String(w));
+  svg.setAttribute("height", String(h));
+  svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+
+  const NS = "http://www.w3.org/2000/svg";
+  svg.innerHTML = `
+    <defs>
+      <marker id="arrowSolid" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto">
+        <path d="M 0 1 L 9 5 L 0 9 z" fill="#334155" />
+      </marker>
+      <marker id="arrowDashed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto">
+        <path d="M 0 1 L 9 5 L 0 9 z" fill="#64748b" />
+      </marker>
+      <marker id="arrowActive" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+        <path d="M 0 1 L 9 5 L 0 9 z" fill="#b45309" />
+      </marker>
+    </defs>`;
+
+  for (const e of EDGES) {
+    const fromEl = board.querySelector(`[data-node-id="${e.from}"]`);
+    const toEl = board.querySelector(`[data-node-id="${e.to}"]`);
+    if (!fromEl || !toEl) continue;
+
+    const a = boxRel(fromEl);
+    const b = boxRel(toEl);
+    const isNeighbor = activeId && (e.from === activeId || e.to === activeId);
+    const isDimmed = activeId && !isNeighbor;
+
+    let d, lx, ly;
+    if (Math.abs(a.cx - b.cx) < 12) {
+      // Same-column vertical edge
+      const goingDown = b.cy > a.cy;
+      const x1 = a.cx, y1 = goingDown ? a.bottom : a.top;
+      const x2 = b.cx, y2 = goingDown ? b.top : b.bottom;
+      d = `M ${x1} ${y1} L ${x2} ${y2}`;
+      lx = x1 + 6;
+      ly = (y1 + y2) / 2;
+    } else {
+      const x1 = a.right, y1 = a.cy;
+      const x2 = b.left, y2 = b.cy;
+      const dx = Math.max(24, (x2 - x1) * 0.45);
+      d = `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
+      lx = (x1 + x2) / 2;
+      ly = (y1 + y2) / 2 - 6;
+    }
+
+    const g = document.createElementNS(NS, "g");
+    g.style.opacity = isDimmed ? "0.18" : "1";
+
+    const path = document.createElementNS(NS, "path");
+    path.setAttribute("d", d);
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke", isNeighbor ? "#b45309" : (e.dashed ? "#64748b" : "#334155"));
+    path.setAttribute("stroke-width", isNeighbor ? "2.6" : "1.8");
+    if (e.dashed) path.setAttribute("stroke-dasharray", "5,4");
+    path.setAttribute("marker-end", isNeighbor ? "url(#arrowActive)" : (e.dashed ? "url(#arrowDashed)" : "url(#arrowSolid)"));
+    g.appendChild(path);
+
+    if (e.label) {
+      const text = document.createElementNS(NS, "text");
+      text.setAttribute("x", String(lx));
+      text.setAttribute("y", String(ly));
+      text.setAttribute("text-anchor", "middle");
+      text.setAttribute("font-size", "10.5");
+      text.setAttribute("font-weight", "600");
+      text.setAttribute("fill", isNeighbor ? "#92400e" : "#475569");
+      text.setAttribute("paint-order", "stroke");
+      text.setAttribute("stroke", "#ffffff");
+      text.setAttribute("stroke-width", "4");
+      text.textContent = e.label;
+      g.appendChild(text);
+    }
+
+    svg.appendChild(g);
+  }
+}
+
+function selectNode(id) {
+  activeId = activeId === id ? null : id;
+  const connected = new Set();
+  if (activeId) {
+    connected.add(activeId);
+    for (const e of EDGES) {
+      if (e.from === activeId) connected.add(e.to);
+      if (e.to === activeId) connected.add(e.from);
+    }
+  }
+
+  board.querySelectorAll(".node-card").forEach(el => {
+    const nid = el.dataset.nodeId;
+    el.classList.toggle("selected", nid === activeId);
+    el.classList.toggle("dimmed", Boolean(activeId && !connected.has(nid)));
+  });
+
+  const ins = document.getElementById("inspector");
+  if (!activeId) {
+    ins.classList.remove("open");
+  } else {
+    const m = metaMap.get(activeId);
+    document.getElementById("insTitle").textContent = `${m.title} (${m.commit})`;
+    document.getElementById("insMeta").innerHTML =
+      `Author: <code>${m.authorDate}</code> · Committer: <code>${m.committerDate}</code> · Subject: <code>${m.subject}</code>`;
+    document.getElementById("insDesc").textContent = m.desc;
+    const filesEl = document.getElementById("insFiles");
+    filesEl.innerHTML = m.groups.length
+      ? m.groups.map(g => `<a href="./${encodeURIComponent(g.fname)}" target="_blank">${g.gname} (${g.shortPath}, ${g.lines} lines) → ${g.fname}</a>`).join("")
+      : "<span>No matching P3/Examples file in this commit</span>";
+    ins.classList.add("open");
+  }
+  drawEdges();
+}
+
+board.querySelectorAll(".node-card").forEach(el => {
+  el.addEventListener("click", () => selectNode(el.dataset.nodeId));
+});
+document.getElementById("insClose").addEventListener("click", () => {
+  if (activeId) selectNode(activeId);
+});
+
+window.addEventListener("load", () => {
+  drawEdges();
+  applyZoom(1);
+});
+new ResizeObserver(drawEdges).observe(board);
+</script>
+</body>
+</html>
