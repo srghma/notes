@@ -1,8 +1,9 @@
 import { mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import type { NodeGroupRef } from "../../lib/schema";
+import type { FileEntry, Group } from "../../lib/types";
 import { NODES } from "./data";
 import { gitRaw } from "./git";
-import type { FileEntry, Group } from "./types";
 
 function uniq<T>(arr: T[]): T[] {
   return [...new Set(arr)];
@@ -17,7 +18,9 @@ export function buildGroups(entries: FileEntry[]): Group[] {
   }
 
   const rawGroups = [...byBlob.entries()].map(([blob, groupEntries]) => {
-    const sortedEntries = [...groupEntries].sort((a, b) => a.nodeIndex - b.nodeIndex);
+    const sortedEntries = [...groupEntries].sort(
+      (a, b) => a.nodeIndex - b.nodeIndex,
+    );
     const isP3 = sortedEntries.some((e) => e.isP3);
     const firstNodeIndex = sortedEntries[0].nodeIndex;
     return { blob, entries: sortedEntries, isP3, firstNodeIndex };
@@ -45,16 +48,10 @@ export function buildGroups(entries: FileEntry[]): Group[] {
   });
 }
 
-export interface NodeGroupRef {
-  gname: string;
-  fname: string;
-  shortPath: string;
-  fullPath: string;
-  lines: number;
-}
-
-export function buildNodeGroupMap(groups: Group[]): Map<string, NodeGroupRef[]> {
-  const map = new Map<string, NodeGroupRef[]>();
+export function buildNodeGroupRecord(
+  groups: Group[],
+): Record<string, NodeGroupRef[]> {
+  const record: Record<string, NodeGroupRef[]> = {};
   for (const n of NODES) {
     const refs: NodeGroupRef[] = [];
     for (const g of groups) {
@@ -70,9 +67,9 @@ export function buildNodeGroupMap(groups: Group[]): Map<string, NodeGroupRef[]> 
         }
       }
     }
-    map.set(n.id, refs);
+    record[n.id] = refs;
   }
-  return map;
+  return record;
 }
 
 export function writeGroupFiles(outDir: string, groups: Group[]): void {

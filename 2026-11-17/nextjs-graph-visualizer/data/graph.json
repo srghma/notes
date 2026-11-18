@@ -1,0 +1,1251 @@
+{
+  "repo": "/home/srghma/projects/kraken",
+  "generatedAt": "2026-11-18T15:40:32.637Z",
+  "lanes": [
+    {
+      "lane": 0,
+      "band": "upstream",
+      "label": "Upstream main"
+    },
+    {
+      "lane": 1,
+      "band": "upstream",
+      "label": "Upstream PRs & Nightly"
+    },
+    {
+      "lane": 2,
+      "band": "sgraf",
+      "label": "sgraf812 Trunk & Track B (VCGen)"
+    },
+    {
+      "lane": 3,
+      "band": "sgraf",
+      "label": "Track A + B Merge"
+    },
+    {
+      "lane": 4,
+      "band": "sgraf",
+      "label": "Track A (FMA3 & Speedups)"
+    }
+  ],
+  "timelineCols": [
+    {
+      "col": 0,
+      "dateLabel": "2026-07-22",
+      "subLabel": "PR #125"
+    },
+    {
+      "col": 1,
+      "dateLabel": "2026-08-03",
+      "subLabel": "PR #131 / freeze"
+    },
+    {
+      "col": 2,
+      "dateLabel": "2026-08-14..17",
+      "subLabel": "estatem / PR #154"
+    },
+    {
+      "col": 3,
+      "dateLabel": "2026-09-10",
+      "subLabel": "Merge 23b6409"
+    },
+    {
+      "col": 4,
+      "dateLabel": "2026-09-18",
+      "subLabel": "829c9468 (TARGET)",
+      "isTarget": true
+    },
+    {
+      "col": 5,
+      "dateLabel": "2026-09-25",
+      "subLabel": "nightly-09-21 / #160"
+    },
+    {
+      "col": 6,
+      "dateLabel": "2026-09-28..29",
+      "subLabel": "sepwp / 63c72ed"
+    },
+    {
+      "col": 7,
+      "dateLabel": "2026-09-29..30",
+      "subLabel": "7cfd503 / FMA3"
+    },
+    {
+      "col": 8,
+      "dateLabel": "2026-10-16..20",
+      "subLabel": "nightly-10-14 / #165"
+    },
+    {
+      "col": 9,
+      "dateLabel": "2026-10-19..20",
+      "subLabel": "speedups / statewp"
+    },
+    {
+      "col": 10,
+      "dateLabel": "2026-10-26..27",
+      "subLabel": "dcc8cc1 / drop-framewp"
+    },
+    {
+      "col": 11,
+      "dateLabel": "2026-10-27",
+      "subLabel": "merge-vcgen"
+    },
+    {
+      "col": 12,
+      "dateLabel": "2026-11-02",
+      "subLabel": "PR #179"
+    },
+    {
+      "col": 13,
+      "dateLabel": "2026-11-05..11",
+      "subLabel": "conj-wp / PR #247"
+    },
+    {
+      "col": 14,
+      "dateLabel": "2026-11-12..16",
+      "subLabel": "vcgen / main HEAD"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "M_125",
+      "commit": "881e959",
+      "slug": "PR125",
+      "title": "PR #125",
+      "desc": "Upstream base before estatem-kfold branched off",
+      "kind": "upstream",
+      "col": 0,
+      "lane": 0
+    },
+    {
+      "id": "M_131",
+      "commit": "05cad40",
+      "slug": "PR131",
+      "title": "PR #131",
+      "desc": "Upstream snapshot where sgraf812/main froze",
+      "kind": "upstream",
+      "col": 1,
+      "lane": 0
+    },
+    {
+      "id": "SG_MAIN",
+      "commit": "05cad40",
+      "slug": "sg-main",
+      "title": "sgraf812/main",
+      "desc": "Stale fork mirror of upstream PR #131",
+      "kind": "baseBranch",
+      "col": 1,
+      "lane": 2
+    },
+    {
+      "id": "M_154",
+      "commit": "2c56cbd",
+      "slug": "PR154",
+      "title": "PR #154",
+      "desc": "X64/AArch64 split, generic layout, ecancel",
+      "kind": "upstream",
+      "col": 2,
+      "lane": 0
+    },
+    {
+      "id": "EST",
+      "commit": "d68f0a4",
+      "slug": "estatem-kfold",
+      "title": "estatem-kfold",
+      "desc": "Open/closed Program.wp (wpOpen/wpClosed), Program.WF, block extraction (+154 off 881e959)",
+      "kind": "baseBranch",
+      "col": 2,
+      "lane": 2
+    },
+    {
+      "id": "M23B",
+      "commit": "23b6409",
+      "slug": "23b6409",
+      "title": "23b6409 (Merge)",
+      "desc": "Merge estatem-kfold with upstream X64/AArch64 split & ecancel",
+      "kind": "mergeNode",
+      "col": 3,
+      "lane": 2
+    },
+    {
+      "id": "C829",
+      "commit": "829c9468",
+      "slug": "829c9468",
+      "title": "829c9468 · TARGET",
+      "desc": "Exact fork point: Algebraic ecancel (SepOps) + solveSepSplit frameproc; separation triples & byte/slice VCGen examples",
+      "kind": "targetCommit",
+      "col": 4,
+      "lane": 2
+    },
+    {
+      "id": "M_160",
+      "commit": "30f5a5f",
+      "slug": "PR160",
+      "title": "PR #160",
+      "desc": "Merge toolchain-nightly-2026-09-21 & Lean module system",
+      "kind": "upstream",
+      "col": 5,
+      "lane": 0
+    },
+    {
+      "id": "TN",
+      "commit": "1045c33",
+      "slug": "nightly-09-21",
+      "title": "toolchain-nightly-2026-09-21",
+      "desc": "Adopt Lean module system & bump to nightly-2026-09-21 (+75 ahead of 05cad40)",
+      "kind": "baseBranch",
+      "col": 5,
+      "lane": 1
+    },
+    {
+      "id": "SEP",
+      "commit": "12371fd",
+      "slug": "sepwp",
+      "title": "sgraf812:sepwp · PR #161",
+      "desc": "Separation-logic WP (MProp) & frame inference prototype (alu_mem_example); no 829c9468",
+      "kind": "activePR",
+      "col": 6,
+      "lane": 1
+    },
+    {
+      "id": "M63C",
+      "commit": "63c72ed",
+      "slug": "63c72ed",
+      "title": "63c72ed (Merge)",
+      "desc": "Adopt Lean module system & nightly-2026-09-21 over 829c9468",
+      "kind": "mergeNode",
+      "col": 6,
+      "lane": 2
+    },
+    {
+      "id": "M7CF",
+      "commit": "7cfd503",
+      "slug": "7cfd503",
+      "title": "7cfd503 (Merge)",
+      "desc": "Pull sepwp prototype (PR #161) over the baseline trunk",
+      "kind": "mergeNode",
+      "col": 7,
+      "lane": 2
+    },
+    {
+      "id": "FMA3",
+      "commit": "9209b11",
+      "slug": "fma3",
+      "title": "sg/fma3-default-limits",
+      "desc": "Prove ff_scalarproduct_float_fma3 at default solver limits + SbrNegOdd64 (+11 ahead of 829c9468)",
+      "kind": "trackA",
+      "col": 7,
+      "lane": 4
+    },
+    {
+      "id": "M_165",
+      "commit": "72f3a7a",
+      "slug": "PR165",
+      "title": "PR #165",
+      "desc": "sgraf812/wp-foundation merged to upstream",
+      "kind": "upstream",
+      "col": 8,
+      "lane": 0
+    },
+    {
+      "id": "N1014",
+      "commit": "9743c3a",
+      "slug": "nightly-10-14",
+      "title": "sg/nightly-2026-10-14",
+      "desc": "Bump to nightly-2026-10-14; indirect memory calls; trim MachineWP deps (+12 / +23)",
+      "kind": "trackA",
+      "col": 8,
+      "lane": 4
+    },
+    {
+      "id": "PR_166",
+      "commit": "4989e1c",
+      "slug": "PR166-statewp",
+      "title": "sgraf812/statewp · PR #166",
+      "desc": "Program.WP vcgen instance (kvcgen64), Host/step1, nightly-2026-10-20 (+5 ahead of 72f3a7a; no 829c9468)",
+      "kind": "activePR",
+      "col": 9,
+      "lane": 1
+    },
+    {
+      "id": "SPEED",
+      "commit": "a443d2c",
+      "slug": "speedups",
+      "title": "sg/upstream-speedups",
+      "desc": "Clean simp/grind normal forms, alignment/bounds & faster CFG VC discharge (+14 / +37)",
+      "kind": "trackA",
+      "col": 9,
+      "lane": 4
+    },
+    {
+      "id": "DROP",
+      "commit": "bc85a6a",
+      "slug": "drop-framewp",
+      "title": "sg/drop-framewp",
+      "desc": "CFG-invariant Program.wp (indirect jumps, FMA3, nightly-10-26); drops old sep WP & frame inf (+179)",
+      "kind": "trackB",
+      "col": 10,
+      "lane": 2
+    },
+    {
+      "id": "DCC",
+      "commit": "dcc8cc1",
+      "slug": "dcc8cc1",
+      "title": "dcc8cc1 (Merge)",
+      "desc": "Merge early vcgen (fe604b6) into sg/mem-mapped",
+      "kind": "mergeNode",
+      "col": 10,
+      "lane": 3
+    },
+    {
+      "id": "MERGE_VC",
+      "commit": "3696f0b",
+      "slug": "merge-vcgen",
+      "title": "sg/merge-vcgen",
+      "desc": "Port Butterflies/FmulSse to Program.wp & unify Track A with drop-framewp (+26 / +205)",
+      "kind": "trackB",
+      "col": 11,
+      "lane": 3
+    },
+    {
+      "id": "M_179",
+      "commit": "6064eec",
+      "slug": "PR179",
+      "title": "PR #179",
+      "desc": "x64-fix-avx-access (base of conj-wp)",
+      "kind": "upstream",
+      "col": 12,
+      "lane": 0
+    },
+    {
+      "id": "M_247",
+      "commit": "0fccb2d",
+      "slug": "PR247",
+      "title": "PR #247",
+      "desc": "Rep-string, delaborators, AArch64 parsers (last synced to vcgen)",
+      "kind": "upstream",
+      "col": 13,
+      "lane": 0
+    },
+    {
+      "id": "PR_195",
+      "commit": "f5a85a1",
+      "slug": "PR195-conj-wp",
+      "title": "sgraf812/conj-wp · PR #195",
+      "desc": "Syntax-driven conjunctive Program.wp (StepIn, Natural, Until), SP call inv, rec even/odd (+25; no 829c9468)",
+      "kind": "activePR",
+      "col": 13,
+      "lane": 1
+    },
+    {
+      "id": "M_HEAD",
+      "commit": "b44bf3f",
+      "slug": "main",
+      "title": "AeneasVerif/main",
+      "desc": "Latest upstream main: layout & parser fixes (+10 ahead of 0fccb2d; +245 ahead of 05cad40)",
+      "kind": "upstream",
+      "col": 14,
+      "lane": 0
+    },
+    {
+      "id": "VCGEN",
+      "commit": "6c2f048",
+      "slug": "vcgen",
+      "title": "vcgen",
+      "desc": "Main active VCGen branch: ChangingFrames/ManyCalls specs + upstream sync (+152 / +331)",
+      "kind": "trackB",
+      "col": 14,
+      "lane": 2
+    }
+  ],
+  "edges": [
+    {
+      "from": "M_125",
+      "to": "M_131",
+      "label": "+29"
+    },
+    {
+      "from": "M_131",
+      "to": "M_154"
+    },
+    {
+      "from": "M_154",
+      "to": "M_160"
+    },
+    {
+      "from": "M_160",
+      "to": "M_165"
+    },
+    {
+      "from": "M_165",
+      "to": "M_179"
+    },
+    {
+      "from": "M_179",
+      "to": "M_247"
+    },
+    {
+      "from": "M_247",
+      "to": "M_HEAD",
+      "label": "+10"
+    },
+    {
+      "from": "M_165",
+      "to": "PR_166",
+      "label": "+5"
+    },
+    {
+      "from": "M_179",
+      "to": "PR_195",
+      "label": "+25"
+    },
+    {
+      "from": "M_131",
+      "to": "SG_MAIN",
+      "label": "freeze",
+      "dashed": true
+    },
+    {
+      "from": "M_125",
+      "to": "EST",
+      "label": "+154"
+    },
+    {
+      "from": "M_154",
+      "to": "TN"
+    },
+    {
+      "from": "TN",
+      "to": "M_160",
+      "label": "PR #160",
+      "dashed": true
+    },
+    {
+      "from": "M_160",
+      "to": "SEP",
+      "label": "+5"
+    },
+    {
+      "from": "EST",
+      "to": "M23B"
+    },
+    {
+      "from": "M_154",
+      "to": "M23B",
+      "label": "merge",
+      "dashed": true
+    },
+    {
+      "from": "M23B",
+      "to": "C829",
+      "label": "+22"
+    },
+    {
+      "from": "C829",
+      "to": "FMA3",
+      "label": "+11"
+    },
+    {
+      "from": "FMA3",
+      "to": "N1014",
+      "label": "+12"
+    },
+    {
+      "from": "N1014",
+      "to": "SPEED",
+      "label": "+14"
+    },
+    {
+      "from": "C829",
+      "to": "M63C",
+      "label": "+21"
+    },
+    {
+      "from": "TN",
+      "to": "M63C",
+      "label": "merge",
+      "dashed": true
+    },
+    {
+      "from": "M63C",
+      "to": "M7CF"
+    },
+    {
+      "from": "SEP",
+      "to": "M7CF",
+      "label": "merge",
+      "dashed": true
+    },
+    {
+      "from": "M7CF",
+      "to": "DROP"
+    },
+    {
+      "from": "DROP",
+      "to": "VCGEN",
+      "label": "+152"
+    },
+    {
+      "from": "M_247",
+      "to": "VCGEN",
+      "label": "merge 339acd1",
+      "dashed": true
+    },
+    {
+      "from": "FMA3",
+      "to": "DCC"
+    },
+    {
+      "from": "DCC",
+      "to": "MERGE_VC"
+    },
+    {
+      "from": "DROP",
+      "to": "MERGE_VC",
+      "label": "merge",
+      "dashed": true
+    }
+  ],
+  "metaByNode": {
+    "M_125": {
+      "hash": "881e959",
+      "authorDate": "2026-07-22",
+      "committerDate": "2026-07-22",
+      "subject": "Merge pull request #125 from zrlk/sse-first"
+    },
+    "M_131": {
+      "hash": "05cad40",
+      "authorDate": "2026-08-03",
+      "committerDate": "2026-08-03",
+      "subject": "Merge pull request #131 from zrlk/dump-zmms"
+    },
+    "SG_MAIN": {
+      "hash": "05cad40",
+      "authorDate": "2026-08-03",
+      "committerDate": "2026-08-03",
+      "subject": "Merge pull request #131 from zrlk/dump-zmms"
+    },
+    "M_154": {
+      "hash": "2c56cbd",
+      "authorDate": "2026-08-17",
+      "committerDate": "2026-08-17",
+      "subject": "Merge pull request #154 from lukaszobernig/aarch64"
+    },
+    "EST": {
+      "hash": "d68f0a4",
+      "authorDate": "2026-08-14",
+      "committerDate": "2026-08-14",
+      "subject": "Inline the closed instance's transformer"
+    },
+    "M23B": {
+      "hash": "23b6409",
+      "authorDate": "2026-09-10",
+      "committerDate": "2026-09-10",
+      "subject": "Merge origin/main: the X64/AArch64 split, the generic layout, and ecancel"
+    },
+    "C829": {
+      "hash": "829c946",
+      "authorDate": "2026-09-18",
+      "committerDate": "2026-09-18",
+      "subject": "ecancel over an algebra record; the frameproc calls solveSepSplit"
+    },
+    "M_160": {
+      "hash": "30f5a5f",
+      "authorDate": "2026-09-25",
+      "committerDate": "2026-09-25",
+      "subject": "Merge pull request #160 from sgraf812/toolchain-nightly-2026-09-21"
+    },
+    "TN": {
+      "hash": "1045c33",
+      "authorDate": "2026-09-25",
+      "committerDate": "2026-09-25",
+      "subject": "Merge branch 'main' into toolchain-nightly-2026-09-21"
+    },
+    "SEP": {
+      "hash": "12371fd",
+      "authorDate": "2026-09-22",
+      "committerDate": "2026-09-28",
+      "subject": "alu_mem_example on the separation wp"
+    },
+    "M63C": {
+      "hash": "63c72ed",
+      "authorDate": "2026-09-29",
+      "committerDate": "2026-09-29",
+      "subject": "Merge origin/main: the module system and nightly-2026-09-21"
+    },
+    "M7CF": {
+      "hash": "7cfd503",
+      "authorDate": "2026-09-29",
+      "committerDate": "2026-09-29",
+      "subject": "Merge fork/sepwp: the separation wp over the baseline burst"
+    },
+    "FMA3": {
+      "hash": "9209b11",
+      "authorDate": "2026-09-30",
+      "committerDate": "2026-09-30",
+      "subject": "Replace cfg_label_facts by evaluation in grind's normalizer"
+    },
+    "M_165": {
+      "hash": "72f3a7a",
+      "authorDate": "2026-10-20",
+      "committerDate": "2026-10-20",
+      "subject": "Merge pull request #165 from AeneasVerif/sgraf812/wp-foundation"
+    },
+    "N1014": {
+      "hash": "9743c3a",
+      "authorDate": "2026-10-16",
+      "committerDate": "2026-10-16",
+      "subject": "Toolchain nightly-2026-10-14"
+    },
+    "PR_166": {
+      "hash": "4989e1c",
+      "authorDate": "2026-10-20",
+      "committerDate": "2026-10-20",
+      "subject": "Toolchain: nightly-2026-10-20"
+    },
+    "SPEED": {
+      "hash": "a443d2c",
+      "authorDate": "2026-10-16",
+      "committerDate": "2026-10-19",
+      "subject": "SbrNegOdd64: state the loop offset over Nat"
+    },
+    "DROP": {
+      "hash": "bc85a6a",
+      "authorDate": "2026-10-27",
+      "committerDate": "2026-10-27",
+      "subject": "Remove the separation wp and its frame inference"
+    },
+    "DCC": {
+      "hash": "dcc8cc1",
+      "authorDate": "2026-10-26",
+      "committerDate": "2026-10-26",
+      "subject": "Merge kraken vcgen (fe604b6) into sg/mem-mapped"
+    },
+    "MERGE_VC": {
+      "hash": "3696f0b",
+      "authorDate": "2026-10-27",
+      "committerDate": "2026-10-27",
+      "subject": "Merge branch 'sg/drop-framewp' into sg/merge-vcgen"
+    },
+    "M_179": {
+      "hash": "6064eec",
+      "authorDate": "2026-11-02",
+      "committerDate": "2026-11-02",
+      "subject": "Merge pull request #179 from ctiller/x64-fix-avx-access"
+    },
+    "M_247": {
+      "hash": "0fccb2d",
+      "authorDate": "2026-11-11",
+      "committerDate": "2026-11-11",
+      "subject": "Merge pull request #247 from tcoratger/x64-rep-addr32-zero"
+    },
+    "PR_195": {
+      "hash": "f5a85a1",
+      "authorDate": "2026-11-05",
+      "committerDate": "2026-11-05",
+      "subject": "Merge branch 'main' into sgraf812/conj-wp"
+    },
+    "M_HEAD": {
+      "hash": "b44bf3f",
+      "authorDate": "2026-11-16",
+      "committerDate": "2026-11-16",
+      "subject": "Merge pull request #230 from AeneasVerif/stack/layout-size-correct"
+    },
+    "VCGEN": {
+      "hash": "6c2f048",
+      "authorDate": "2026-11-12",
+      "committerDate": "2026-11-12",
+      "subject": "Make the ManyCalls callee write a fixed location"
+    }
+  },
+  "groupsByNode": {
+    "M_125": [
+      {
+        "gname": "G07",
+        "fname": "G07_old_Examples_PR125.lean",
+        "shortPath": "old/Examples.lean",
+        "fullPath": "Kraken/Examples/Examples.lean",
+        "lines": 597
+      }
+    ],
+    "M_131": [
+      {
+        "gname": "G08",
+        "fname": "G08_Examples_PR131_sg-main.lean",
+        "shortPath": "Examples.lean",
+        "fullPath": "Kraken/X64/Examples/Examples.lean",
+        "lines": 554
+      }
+    ],
+    "SG_MAIN": [
+      {
+        "gname": "G08",
+        "fname": "G08_Examples_PR131_sg-main.lean",
+        "shortPath": "Examples.lean",
+        "fullPath": "Kraken/X64/Examples/Examples.lean",
+        "lines": 554
+      }
+    ],
+    "M_154": [
+      {
+        "gname": "G09",
+        "fname": "G09_Examples_PR154.lean",
+        "shortPath": "Examples.lean",
+        "fullPath": "Kraken/X64/Examples/Examples.lean",
+        "lines": 475
+      }
+    ],
+    "EST": [
+      {
+        "gname": "G01",
+        "fname": "G01_old_P3_estatem-kfold.lean",
+        "shortPath": "old/P3.lean",
+        "fullPath": "Kraken/Examples/P3.lean",
+        "lines": 125
+      }
+    ],
+    "M23B": [
+      {
+        "gname": "G02",
+        "fname": "G02_P3_23b6409_829c9468.lean",
+        "shortPath": "P3.lean",
+        "fullPath": "Kraken/X64/Examples/P3.lean",
+        "lines": 104
+      },
+      {
+        "gname": "G10",
+        "fname": "G10_Examples_23b6409_829c9468_fma3_nightly-10-14_speedups.lean",
+        "shortPath": "Examples.lean",
+        "fullPath": "Kraken/X64/Examples/Examples.lean",
+        "lines": 482
+      }
+    ],
+    "C829": [
+      {
+        "gname": "G02",
+        "fname": "G02_P3_23b6409_829c9468.lean",
+        "shortPath": "P3.lean",
+        "fullPath": "Kraken/X64/Examples/P3.lean",
+        "lines": 104
+      },
+      {
+        "gname": "G10",
+        "fname": "G10_Examples_23b6409_829c9468_fma3_nightly-10-14_speedups.lean",
+        "shortPath": "Examples.lean",
+        "fullPath": "Kraken/X64/Examples/Examples.lean",
+        "lines": 482
+      }
+    ],
+    "M_160": [
+      {
+        "gname": "G11",
+        "fname": "G11_Examples_PR160_nightly-09-21_sepwp_63c72ed_7cfd503.lean",
+        "shortPath": "Examples.lean",
+        "fullPath": "Kraken/X64/Examples/Examples.lean",
+        "lines": 476
+      }
+    ],
+    "TN": [
+      {
+        "gname": "G11",
+        "fname": "G11_Examples_PR160_nightly-09-21_sepwp_63c72ed_7cfd503.lean",
+        "shortPath": "Examples.lean",
+        "fullPath": "Kraken/X64/Examples/Examples.lean",
+        "lines": 476
+      }
+    ],
+    "SEP": [
+      {
+        "gname": "G11",
+        "fname": "G11_Examples_PR160_nightly-09-21_sepwp_63c72ed_7cfd503.lean",
+        "shortPath": "Examples.lean",
+        "fullPath": "Kraken/X64/Examples/Examples.lean",
+        "lines": 476
+      }
+    ],
+    "M63C": [
+      {
+        "gname": "G11",
+        "fname": "G11_Examples_PR160_nightly-09-21_sepwp_63c72ed_7cfd503.lean",
+        "shortPath": "Examples.lean",
+        "fullPath": "Kraken/X64/Examples/Examples.lean",
+        "lines": 476
+      }
+    ],
+    "M7CF": [
+      {
+        "gname": "G11",
+        "fname": "G11_Examples_PR160_nightly-09-21_sepwp_63c72ed_7cfd503.lean",
+        "shortPath": "Examples.lean",
+        "fullPath": "Kraken/X64/Examples/Examples.lean",
+        "lines": 476
+      }
+    ],
+    "FMA3": [
+      {
+        "gname": "G03",
+        "fname": "G03_P3_fma3_nightly-10-14.lean",
+        "shortPath": "P3.lean",
+        "fullPath": "Kraken/X64/Examples/P3.lean",
+        "lines": 95
+      },
+      {
+        "gname": "G10",
+        "fname": "G10_Examples_23b6409_829c9468_fma3_nightly-10-14_speedups.lean",
+        "shortPath": "Examples.lean",
+        "fullPath": "Kraken/X64/Examples/Examples.lean",
+        "lines": 482
+      }
+    ],
+    "M_165": [
+      {
+        "gname": "G12",
+        "fname": "G12_Examples_PR165_PR179_PR195-conj-wp.lean",
+        "shortPath": "Examples.lean",
+        "fullPath": "Kraken/X64/Examples/Examples.lean",
+        "lines": 476
+      }
+    ],
+    "N1014": [
+      {
+        "gname": "G03",
+        "fname": "G03_P3_fma3_nightly-10-14.lean",
+        "shortPath": "P3.lean",
+        "fullPath": "Kraken/X64/Examples/P3.lean",
+        "lines": 95
+      },
+      {
+        "gname": "G10",
+        "fname": "G10_Examples_23b6409_829c9468_fma3_nightly-10-14_speedups.lean",
+        "shortPath": "Examples.lean",
+        "fullPath": "Kraken/X64/Examples/Examples.lean",
+        "lines": 482
+      }
+    ],
+    "PR_166": [
+      {
+        "gname": "G13",
+        "fname": "G13_Examples_PR166-statewp.lean",
+        "shortPath": "Examples.lean",
+        "fullPath": "Kraken/X64/Examples/Examples.lean",
+        "lines": 478
+      }
+    ],
+    "SPEED": [
+      {
+        "gname": "G04",
+        "fname": "G04_P3_speedups.lean",
+        "shortPath": "P3.lean",
+        "fullPath": "Kraken/X64/Examples/P3.lean",
+        "lines": 97
+      },
+      {
+        "gname": "G10",
+        "fname": "G10_Examples_23b6409_829c9468_fma3_nightly-10-14_speedups.lean",
+        "shortPath": "Examples.lean",
+        "fullPath": "Kraken/X64/Examples/Examples.lean",
+        "lines": 482
+      }
+    ],
+    "DROP": [
+      {
+        "gname": "G05",
+        "fname": "G05_WP_P3_drop-framewp_dcc8cc1_merge-vcgen.lean",
+        "shortPath": "WP/P3.lean",
+        "fullPath": "Kraken/X64/Examples/WP/P3.lean",
+        "lines": 65
+      },
+      {
+        "gname": "G14",
+        "fname": "G14_Examples_drop-framewp_dcc8cc1_merge-vcgen.lean",
+        "shortPath": "Examples.lean",
+        "fullPath": "Kraken/X64/Examples/Examples.lean",
+        "lines": 479
+      }
+    ],
+    "DCC": [
+      {
+        "gname": "G05",
+        "fname": "G05_WP_P3_drop-framewp_dcc8cc1_merge-vcgen.lean",
+        "shortPath": "WP/P3.lean",
+        "fullPath": "Kraken/X64/Examples/WP/P3.lean",
+        "lines": 65
+      },
+      {
+        "gname": "G14",
+        "fname": "G14_Examples_drop-framewp_dcc8cc1_merge-vcgen.lean",
+        "shortPath": "Examples.lean",
+        "fullPath": "Kraken/X64/Examples/Examples.lean",
+        "lines": 479
+      }
+    ],
+    "MERGE_VC": [
+      {
+        "gname": "G05",
+        "fname": "G05_WP_P3_drop-framewp_dcc8cc1_merge-vcgen.lean",
+        "shortPath": "WP/P3.lean",
+        "fullPath": "Kraken/X64/Examples/WP/P3.lean",
+        "lines": 65
+      },
+      {
+        "gname": "G14",
+        "fname": "G14_Examples_drop-framewp_dcc8cc1_merge-vcgen.lean",
+        "shortPath": "Examples.lean",
+        "fullPath": "Kraken/X64/Examples/Examples.lean",
+        "lines": 479
+      }
+    ],
+    "M_179": [
+      {
+        "gname": "G12",
+        "fname": "G12_Examples_PR165_PR179_PR195-conj-wp.lean",
+        "shortPath": "Examples.lean",
+        "fullPath": "Kraken/X64/Examples/Examples.lean",
+        "lines": 476
+      }
+    ],
+    "M_247": [
+      {
+        "gname": "G15",
+        "fname": "G15_Examples_PR247_main.lean",
+        "shortPath": "Examples.lean",
+        "fullPath": "Kraken/X64/Examples/Examples.lean",
+        "lines": 532
+      }
+    ],
+    "PR_195": [
+      {
+        "gname": "G12",
+        "fname": "G12_Examples_PR165_PR179_PR195-conj-wp.lean",
+        "shortPath": "Examples.lean",
+        "fullPath": "Kraken/X64/Examples/Examples.lean",
+        "lines": 476
+      }
+    ],
+    "M_HEAD": [
+      {
+        "gname": "G15",
+        "fname": "G15_Examples_PR247_main.lean",
+        "shortPath": "Examples.lean",
+        "fullPath": "Kraken/X64/Examples/Examples.lean",
+        "lines": 532
+      }
+    ],
+    "VCGEN": [
+      {
+        "gname": "G06",
+        "fname": "G06_WP_P3_vcgen.lean",
+        "shortPath": "WP/P3.lean",
+        "fullPath": "Kraken/X64/Examples/WP/P3.lean",
+        "lines": 61
+      },
+      {
+        "gname": "G16",
+        "fname": "G16_Examples_vcgen.lean",
+        "shortPath": "Examples.lean",
+        "fullPath": "Kraken/X64/Examples/Examples.lean",
+        "lines": 535
+      }
+    ]
+  },
+  "groups": [
+    {
+      "gname": "G01",
+      "fname": "G01_old_P3_estatem-kfold.lean",
+      "blob": "5421c3b715efa8a6af2cf6a667108c35cde26909",
+      "isP3": true,
+      "entries": [
+        {
+          "id": "EST",
+          "shortPath": "old/P3.lean",
+          "lines": 125
+        }
+      ]
+    },
+    {
+      "gname": "G02",
+      "fname": "G02_P3_23b6409_829c9468.lean",
+      "blob": "f211472f63ba3a2ed0575614bf407f9b9fd2b575",
+      "isP3": true,
+      "entries": [
+        {
+          "id": "M23B",
+          "shortPath": "P3.lean",
+          "lines": 104
+        },
+        {
+          "id": "C829",
+          "shortPath": "P3.lean",
+          "lines": 104
+        }
+      ]
+    },
+    {
+      "gname": "G03",
+      "fname": "G03_P3_fma3_nightly-10-14.lean",
+      "blob": "c290f2bddfb612ecd8d9f46bb682794a4da29c01",
+      "isP3": true,
+      "entries": [
+        {
+          "id": "FMA3",
+          "shortPath": "P3.lean",
+          "lines": 95
+        },
+        {
+          "id": "N1014",
+          "shortPath": "P3.lean",
+          "lines": 95
+        }
+      ]
+    },
+    {
+      "gname": "G04",
+      "fname": "G04_P3_speedups.lean",
+      "blob": "d031618df0cac516cd580de0d130282e539f065e",
+      "isP3": true,
+      "entries": [
+        {
+          "id": "SPEED",
+          "shortPath": "P3.lean",
+          "lines": 97
+        }
+      ]
+    },
+    {
+      "gname": "G05",
+      "fname": "G05_WP_P3_drop-framewp_dcc8cc1_merge-vcgen.lean",
+      "blob": "391a6c9a164d2310b9e4d162093d31ae40499136",
+      "isP3": true,
+      "entries": [
+        {
+          "id": "DROP",
+          "shortPath": "WP/P3.lean",
+          "lines": 65
+        },
+        {
+          "id": "DCC",
+          "shortPath": "WP/P3.lean",
+          "lines": 65
+        },
+        {
+          "id": "MERGE_VC",
+          "shortPath": "WP/P3.lean",
+          "lines": 65
+        }
+      ]
+    },
+    {
+      "gname": "G06",
+      "fname": "G06_WP_P3_vcgen.lean",
+      "blob": "1cc0f01ec5a843fee55ae3be5caf150f4e06ad45",
+      "isP3": true,
+      "entries": [
+        {
+          "id": "VCGEN",
+          "shortPath": "WP/P3.lean",
+          "lines": 61
+        }
+      ]
+    },
+    {
+      "gname": "G07",
+      "fname": "G07_old_Examples_PR125.lean",
+      "blob": "6d14da7d498c97e84434bcc410d24fb724c90f8d",
+      "isP3": false,
+      "entries": [
+        {
+          "id": "M_125",
+          "shortPath": "old/Examples.lean",
+          "lines": 597
+        }
+      ]
+    },
+    {
+      "gname": "G08",
+      "fname": "G08_Examples_PR131_sg-main.lean",
+      "blob": "7eea00c38bcedf599848ac30547c27aae33cfe1f",
+      "isP3": false,
+      "entries": [
+        {
+          "id": "M_131",
+          "shortPath": "Examples.lean",
+          "lines": 554
+        },
+        {
+          "id": "SG_MAIN",
+          "shortPath": "Examples.lean",
+          "lines": 554
+        }
+      ]
+    },
+    {
+      "gname": "G09",
+      "fname": "G09_Examples_PR154.lean",
+      "blob": "91e77875344f8a163c6f7eb1f20bb0ee698d5719",
+      "isP3": false,
+      "entries": [
+        {
+          "id": "M_154",
+          "shortPath": "Examples.lean",
+          "lines": 475
+        }
+      ]
+    },
+    {
+      "gname": "G10",
+      "fname": "G10_Examples_23b6409_829c9468_fma3_nightly-10-14_speedups.lean",
+      "blob": "17ad78bf8d926834b7ca868d4cdf2e2fa4a0197e",
+      "isP3": false,
+      "entries": [
+        {
+          "id": "M23B",
+          "shortPath": "Examples.lean",
+          "lines": 482
+        },
+        {
+          "id": "C829",
+          "shortPath": "Examples.lean",
+          "lines": 482
+        },
+        {
+          "id": "FMA3",
+          "shortPath": "Examples.lean",
+          "lines": 482
+        },
+        {
+          "id": "N1014",
+          "shortPath": "Examples.lean",
+          "lines": 482
+        },
+        {
+          "id": "SPEED",
+          "shortPath": "Examples.lean",
+          "lines": 482
+        }
+      ]
+    },
+    {
+      "gname": "G11",
+      "fname": "G11_Examples_PR160_nightly-09-21_sepwp_63c72ed_7cfd503.lean",
+      "blob": "b9aedc97df0cb6b2a892a46a31ad5b3d45b83e2b",
+      "isP3": false,
+      "entries": [
+        {
+          "id": "M_160",
+          "shortPath": "Examples.lean",
+          "lines": 476
+        },
+        {
+          "id": "TN",
+          "shortPath": "Examples.lean",
+          "lines": 476
+        },
+        {
+          "id": "SEP",
+          "shortPath": "Examples.lean",
+          "lines": 476
+        },
+        {
+          "id": "M63C",
+          "shortPath": "Examples.lean",
+          "lines": 476
+        },
+        {
+          "id": "M7CF",
+          "shortPath": "Examples.lean",
+          "lines": 476
+        }
+      ]
+    },
+    {
+      "gname": "G12",
+      "fname": "G12_Examples_PR165_PR179_PR195-conj-wp.lean",
+      "blob": "bea14ade68b7496a2c7119d251471e171257ff10",
+      "isP3": false,
+      "entries": [
+        {
+          "id": "M_165",
+          "shortPath": "Examples.lean",
+          "lines": 476
+        },
+        {
+          "id": "M_179",
+          "shortPath": "Examples.lean",
+          "lines": 476
+        },
+        {
+          "id": "PR_195",
+          "shortPath": "Examples.lean",
+          "lines": 476
+        }
+      ]
+    },
+    {
+      "gname": "G13",
+      "fname": "G13_Examples_PR166-statewp.lean",
+      "blob": "bd512e5cdb18d89fb793f5a953e911d885c91c65",
+      "isP3": false,
+      "entries": [
+        {
+          "id": "PR_166",
+          "shortPath": "Examples.lean",
+          "lines": 478
+        }
+      ]
+    },
+    {
+      "gname": "G14",
+      "fname": "G14_Examples_drop-framewp_dcc8cc1_merge-vcgen.lean",
+      "blob": "342f6a1d84cc9adb6a921b5015a7a001c6df59d3",
+      "isP3": false,
+      "entries": [
+        {
+          "id": "DROP",
+          "shortPath": "Examples.lean",
+          "lines": 479
+        },
+        {
+          "id": "DCC",
+          "shortPath": "Examples.lean",
+          "lines": 479
+        },
+        {
+          "id": "MERGE_VC",
+          "shortPath": "Examples.lean",
+          "lines": 479
+        }
+      ]
+    },
+    {
+      "gname": "G15",
+      "fname": "G15_Examples_PR247_main.lean",
+      "blob": "2baed416c40e3d5af4e018d44e6b8a4cd61c7c26",
+      "isP3": false,
+      "entries": [
+        {
+          "id": "M_247",
+          "shortPath": "Examples.lean",
+          "lines": 532
+        },
+        {
+          "id": "M_HEAD",
+          "shortPath": "Examples.lean",
+          "lines": 532
+        }
+      ]
+    },
+    {
+      "gname": "G16",
+      "fname": "G16_Examples_vcgen.lean",
+      "blob": "91bc8b67b2c09d647bd7aa04d8406d9c5686625c",
+      "isP3": false,
+      "entries": [
+        {
+          "id": "VCGEN",
+          "shortPath": "Examples.lean",
+          "lines": 535
+        }
+      ]
+    }
+  ]
+}
