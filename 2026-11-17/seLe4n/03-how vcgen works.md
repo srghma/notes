@@ -1,7 +1,11 @@
 ```lean
 -- https://leanprover-community.github.io/mathlib4_docs/Std/WP/Triple/Basic.html#Std.WP.Triple
 -- https://github.com/leanprover/lean4/blob/611c117bfaf7b7ae1cfcf246ce6fba31e8f509e9/src/Std/WP/Triple/Basic.lean#L35-L42
-structure Triple {Pred : Type w} {EPosts : Type w'} {Prog : Type u} {Value : Type v} [Assertion Pred] [Assertion EPosts] (x : Prog) [WP Prog Value Pred EPosts] (pre : Pred) (post : Value → Pred) (eposts : EPosts) : Prop where
+structure Triple
+  {Pred : Type w} {EPosts : Type w'} {Prog : Type u} {Value : Type v}
+  [Assertion Pred] [Assertion EPosts]
+  (x : Prog)
+  [WP Prog Value Pred EPosts] (pre : Pred) (post : Value → Pred) (eposts : EPosts) : Prop where
   intro ::
   le_wp : pre ⊑ wp x post eposts
 ```

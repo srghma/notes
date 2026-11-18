@@ -157,23 +157,135 @@ variable {α : Type u} [CompleteLattice α]
 -- ### Concrete examples
 -- - **Numbers** (ordered by `≤`): `meet 5 8` = `inf {5, 8}` = `5` (i.e. `min`).
 -- - **Sets** (ordered by `⊆`): `meet A B` = `inf {A, B}` = A ∩ B (intersection — the biggest set inside both A and B).
-Suppose A = {1,2}, B = {2,3}, The order ⊑ is ⊆ (is inside / subset of).
-CompleteLattice.sup (fun x => fun y = y = {1,2} ∨ y = {2,3} → x ⊑ y)
-CompleteLattice.sup (fun x => x ⊑ {1,2} ∨ x ⊑ {2,3})
-
-the `fun x => x ⊑ {1,2} ∨ x ⊑ {2,3}` filter pass only {} and {2}
-then `CompleteLattice.sup` unions {} and {2} together
--------- fun z => z = x ∨ z = y will return
+-----------Suppose A = {1,2}, B = {2,3}, The order ⊑ is ⊆ (is inside / subset of).
+-----------CompleteLattice.sup (fun x => fun y = y = {1,2} ∨ y = {2,3} → x ⊑ y)
+-----------CompleteLattice.sup (fun x => x ⊑ {1,2} ∨ x ⊑ {2,3})
+-----------
+-----------the `fun x => x ⊑ {1,2} ∨ x ⊑ {2,3}` filter pass only {} and {2}
+-----------then `CompleteLattice.sup` unions {} and {2} together
 -- noncomputable def meet (x y : α) : α := inf (fun z => z = x ∨ z = y)
 --
 -- @[inherit_doc meet]
 -- scoped infixl:70 " ⊓ " => meet
+
+/-
+open Lean.Order
+-- Check that it typechecks and synthesizes `CompleteLattice (Nat → ImplicationOrder)`
+#check CompleteLattice.sup (fun (s : Nat → ImplicationOrder) => s = (fun _ => False) ∨ s = (fun n => n = 2))
+-- Prove that the supremum of {∅, {2}} is {2}
+example :
+    CompleteLattice.sup (fun (s : Nat → ImplicationOrder) => s = (fun _ => False) ∨ s = (fun n => n = 2)) =
+    (fun n => n = 2 : Nat → ImplicationOrder) := by
+  apply PartialOrder.rel_antisymm
+  · apply sup_le
+    intro y hy
+    rcases hy with rfl | rfl
+    · intro _ h
+      cases h
+    · exact PartialOrder.rel_refl
+  · apply le_sup
+    right
+    rfl
+-/
+
+/-
+import Lean
+import Std.Internal.Order.Heyting
+open Lean.Order Std.Internal.Order
+
+--abbrev Heyting (α : Type u) [CompleteLattice α] : Prop := ∀ a : α, PreservesSup (meet a)
+
+set_option pp.all true
+
+#reduce Heyting
+#reduce (proofs := true) Heyting
+#reduce (types := true) Heyting
+#reduce (proofs := true) (types := true) Heyting
+
+#eval show Lean.Meta.MetaM Lean.Expr from do
+  let e ← Lean.Meta.mkConstWithFreshMVarLevels ``Lean.Order.Heyting
+  Lean.Meta.reduce e (explicitOnly := false) (skipTypes := false) (skipProofs := false)
+
+
+set_option pp.all true in
+#eval show Lean.Meta.MetaM Unit from do
+  let e ← Lean.Meta.mkConstWithFreshMVarLevels ``Lean.Order.Heyting
+  let r ← Lean.Meta.reduceAll e
+  IO.println (← Lean.Meta.ppExpr r)
+-/
 
 /-- A complete lattice whose meets preserve suprema. The Heyting implication `⇨` is then a right
 adjoint, and `⊓` distributes over suprema of arbitrary families. The literature also calls such a
 lattice a frame. -/
 abbrev Heyting (α : Type u) [CompleteLattice α] : Prop := ∀ a : α, PreservesSup (meet a)
 
+namespace PreservesSup
+
+/-- The upper adjoint of `f`: the join of all `x` with `f x ⊑ b`. For `f = (a ⊓ ·)` this is Heyting
+implication `a ⇨ ·`. -/
+noncomputable def upperAdjoint (f : α → α) (b : α) : α := CompleteLattice.sup (fun x => f x ⊑ b) -- if (f x) < b then True else False
+
+/-
+
+- Think of `CompleteLattice.sup` as **"the smallest thing that is at least as big as everything in the pile"** (their combined upper bound / `OR`).
+- `fun x => f x ⊑ b` is the **pile of all inputs `x` that pass the test** (`f x ≤ b`).
+- So `upperAdjoint f b` just takes **every passing input `x` and glues them together into one combined top value**.
+
+**Everyday examples:**
+- **With multiplication (`f x = 3 * x`, `b = 10`):**
+  Every `x` with `3 * x ≤ 10` goes in the pile. The top of that pile is `10 / 3`!
+  *(So `upperAdjoint (3 * ·)` is literally division `· / 3`!)*
+- **With logic / Heyting implication (`f x = a ⊓ x`, `b = b`):**
+  Every `x` with `(a ⊓ x) ≤ b` ("(`a` AND `x`) implies `b`") goes in the pile. The top of that pile is **`a ⇨ b`** ("if `a` then `b`")!
+
+      > NOTE:
+      > - ⊓ is intersection (∩) ("in both")
+      > - ≤ is subset (⊆) ("fits inside")
+      > - sup is union (⋃) ("glue all sets in the pile together")
+      >
+      > EXAMPLE:
+      > - lets be in universe {1,2,3,4} THEN if a={1,2} and b={2,3}, THEN a⇨b={2,3,4} (3 and 4 are vacuously true)
+
+
+---
+
+### 2. `le_upperAdjoint`: Why one direction is completely "free"
+
+```lean
+theorem le_upperAdjoint (f : α → α) {b x : α} (h : f x ⊑ b) :
+    x ⊑ upperAdjoint f b :=
+  le_sup (c := fun x : α => f x ⊑ b) h
+```
+
+This says:
+> **"If `x` passes the test (`f x ⊑ b`), then `x` is at most the `sup` of all things that pass the test."**
+
+Why is that **free** (needing only `CompleteLattice`, and **not** `Heyting` or `PreservesSup`, or even monotonicity of `f`)?
+
+- By definition, `upperAdjoint f b` is the `sup` of the pile `{x | f x ⊑ b}`.
+- Saying `h : f x ⊑ b` literally just says **"Hey, `x` is in that pile!"**
+- Of course any single item in a pile is $\le$ the `sup` of the whole pile (`le_sup`)! No special properties of `f` are needed at all.
+
+---
+
+### Bonus: What's the *non-free* half?
+
+The **other** direction of the Galois connection / Heyting rule is:
+$$\text{If } x \sqsubseteq \text{upperAdjoint } f\; b, \text{ then } f\; x \sqsubseteq b.$$
+
+That direction is **NOT free**! Just because every individual `x` in a pile satisfies `f x ≤ b` doesn't automatically mean the glued-together `sup` of the pile still satisfies `f (sup pile) ≤ b`.
+
+To prove that reverse half, you need **`PreservesSup f`** (which is what `Lean.Order.Heyting` gives for `f = (a ⊓ ·)`):
+$$f(\sup \text{pile}) = \sup \{f x \mid x \in \text{pile}\} \sqsubseteq b.$$
+
+**In one sentence:**
+- `upperAdjoint f b` = the `sup` of all `x` where `f x ⊑ b`.
+- `le_upperAdjoint` = "if `x` is in that set, then `x ⊑ sup` of that set" — true for *any* function in a `CompleteLattice`, before `Heyting` even enters the picture!
+
+-/
+end PreservesSup
+
+-- a ⇨ b is the biggest x such that a ⊓ x ⊑ b.
 /-- Heyting implication: the upper adjoint of the lattice meet. For `Prop` it is `→`. -/
 noncomputable def himp {α : Type u} [CompleteLattice α] (a b : α) : α :=
   PreservesSup.upperAdjoint (meet a) b
@@ -217,4 +329,4 @@ variable [Heyting l]
     --[∀ a : l, PreservesSup (meet a)] (P Q : l) :
     [Heyting l] (P Q : l) :
     ((⊤ : l) ⊑ P ⇨ Q) ↔ (P ⊑ Q) :=
-  ⟨fun h => rel_trans
+  ⟨fun h => rel_trans...
