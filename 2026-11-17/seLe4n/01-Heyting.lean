@@ -143,10 +143,27 @@ variable {α : Type u} [CompleteLattice α]
 -------------------     from CompleteLattice.has_sup
 -------------------       (fun y => ∃ x, s x ∧ y = f x))
 
--- Infimum of a = Supremum of "a in the reversed order"
--- noncomputable def inf (c : α → Prop) : α := CompleteLattice.sup (∀ y, c y → · ⊑ y)
+-- NOT `Infimum of a = Supremum of "a in the reversed order"`
+-- BUT
+--   1. Collect every valid floor of {5, 7, 10}: ..., 1, 2, 3, 4, 5
+--   (Every one of these is ≤ 5, ≤ 7, and ≤ 10.)
+--   2. Feed all those floors into your ceiling machine (sup):
+--   The ceiling of {..., 1, 2, 3, 4, 5} is 5!
+--
+-- noncomputable def inf (c : α → Prop) : α := CompleteLattice.sup (fun x => ∀ y, c y → x ⊑ y)
 
 -- /-- Binary meet (infimum) -/
+-- `fun z => z = x ∨ z = y` will return just 2-element set `{x, y}`
+-- ### Concrete examples
+-- - **Numbers** (ordered by `≤`): `meet 5 8` = `inf {5, 8}` = `5` (i.e. `min`).
+-- - **Sets** (ordered by `⊆`): `meet A B` = `inf {A, B}` = A ∩ B (intersection — the biggest set inside both A and B).
+Suppose A = {1,2}, B = {2,3}, The order ⊑ is ⊆ (is inside / subset of).
+CompleteLattice.sup (fun x => fun y = y = {1,2} ∨ y = {2,3} → x ⊑ y)
+CompleteLattice.sup (fun x => x ⊑ {1,2} ∨ x ⊑ {2,3})
+
+the `fun x => x ⊑ {1,2} ∨ x ⊑ {2,3}` filter pass only {} and {2}
+then `CompleteLattice.sup` unions {} and {2} together
+-------- fun z => z = x ∨ z = y will return
 -- noncomputable def meet (x y : α) : α := inf (fun z => z = x ∨ z = y)
 --
 -- @[inherit_doc meet]
