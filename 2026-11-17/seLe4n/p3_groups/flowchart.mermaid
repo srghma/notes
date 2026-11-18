@@ -1,0 +1,188 @@
+flowchart LR
+    %% Upstream AeneasVerif/kraken main + upstream PR branches
+    subgraph UPSTREAM["AeneasVerif/kraken (upstream)"]
+        M_125["<b>881e959</b> · PR #125 · 2026-07-22<br/><i>Upstream base before</i><br/><i>estatem-kfold branched off</i><br/><b>[G07 (old/Examples.lean)]</b>"]
+        M_131["<b>05cad40</b> · PR #131 · 2026-08-03<br/><i>Upstream snapshot where</i><br/><i>sgraf812/main froze</i><br/><b>[G08 (Examples.lean)]</b>"]
+        M_154["<b>2c56cbd</b> · PR #154 · 2026-08-17<br/><i>X64/AArch64 split,</i><br/><i>generic layout, ecancel</i><br/><b>[G09 (Examples.lean)]</b>"]
+        M_160["<b>30f5a5f</b> · PR #160 · 2026-09-25<br/><i>Merge toolchain-nightly-09-21</i><br/><i>&amp; Lean module system</i><br/><b>[G10 (Examples.lean)]</b>"]
+        M_165["<b>72f3a7a</b> · PR #165 · 2026-10-20<br/><i>sgraf812/wp-foundation</i><br/><i>merged to upstream</i><br/><b>[G11 (Examples.lean)]</b>"]
+        M_179["<b>6064eec</b> · PR #179 · 2026-11-02<br/><i>x64-fix-avx-access</i><br/><i>(base of conj-wp)</i><br/><b>[G11 (Examples.lean)]</b>"]
+        M_247["<b>0fccb2d</b> · PR #247 · 2026-11-11<br/><i>Rep-string, delaborators,</i><br/><i>AArch64 parsers (synced to vcgen)</i><br/><b>[G12 (Examples.lean)]</b>"]
+        M_HEAD["<b>AeneasVerif/main</b> (b44bf3f) · 2026-11-16<br/><i>Latest upstream main:</i><br/><i>layout &amp; parser fixes (+10 / +245)</i><br/><b>[G12 (Examples.lean)]</b>"]
+
+        PR_166["<b>sgraf812/statewp</b> · PR #166 (4989e1c)<br/>2026-10-20 · <i>Program.WP vcgen (kvcgen64),</i><br/><i>Host/step1 (+5; no 829c9468)</i><br/><b>[G13 (Examples.lean)]</b>"]
+        PR_195["<b>sgraf812/conj-wp</b> · PR #195 (f5a85a1)<br/>2026-11-05 · <i>Conjunctive Program.wp,</i><br/><i>SP call inv (+25; no 829c9468)</i><br/><b>[G11 (Examples.lean)]</b>"]
+
+        M_125 -->|"+29"| M_131
+        M_131 --> M_154
+        M_154 --> M_160
+        M_160 --> M_165
+        M_165 --> M_179
+        M_179 --> M_247
+        M_247 -->|"+10"| M_HEAD
+
+        M_165 -->|"+5"| PR_166
+        M_179 -->|"+25"| PR_195
+    end
+
+    %% sgraf812/kraken branches
+    subgraph SGRAF["sgraf812/kraken"]
+        SG_MAIN["<b>main</b> (05cad40) · 2026-08-03<br/><i>Stale fork mirror of PR #131</i><br/><b>[G08 (Examples.lean)]</b>"]
+        EST["<b>estatem-kfold</b> (d68f0a4) · 2026-08-14<br/><i>Open/closed Program.wp,</i><br/><i>Program.WF, blocks (+154)</i><br/><b>[G01 (old/P3.lean)]</b>"]
+        TN["<b>toolchain-nightly-09-21</b> (1045c33)<br/>2026-09-25 · <i>Lean module system</i><br/><i>&amp; nightly-09-21 (+75)</i><br/><b>[G10 (Examples.lean)]</b>"]
+        SEP["<b>sgraf812:sepwp</b> · PR #161 (12371fd)<br/>2026-09-28 · <i>Separation WP (MProp)</i><br/><i>&amp; frame prototype (+5; no 829c9468)</i><br/><b>[G10 (Examples.lean)]</b>"]
+
+        M_131 -.-> SG_MAIN
+        M_125 -->|"+154"| EST
+        M_154 --> TN
+        TN -. "PR #160" .-> M_160
+        M_160 -->|"+5"| SEP
+
+        %% Merge of estatem-kfold + upstream main
+        M23B["<b>23b6409</b> (Merge) · 2026-09-10<br/><i>Merge estatem-kfold with</i><br/><i>X64/AArch64 split &amp; ecancel</i><br/><b>[G02 (P3.lean), G14 (Examples.lean)]</b>"]
+        EST --> M23B
+        M_154 -. merge .-> M23B
+
+        %% THE TARGET COMMIT = EXACT FORK POINT
+        C829(["<b>829c9468</b> · 2026-09-18<br/>TARGET COMMIT / FORK POINT<br/><i>Algebraic ecancel (SepOps) +</i><br/><i>solveSepSplit frameproc</i><br/><b>[G02 (P3.lean), G14 (Examples.lean)]</b>"])
+        M23B -->|"+22"| C829
+
+        %% Track A: FMA3 -> nightly-2026-10-14 -> upstream-speedups
+        FMA3["<b>sg/fma3-default-limits</b> (9209b11)<br/>2026-09-30 · <i>FMA3 at default limits</i><br/><i>+ SbrNegOdd64 (+11)</i><br/><b>[G03 (P3.lean), G14 (Examples.lean)]</b>"]
+        N1014["<b>sg/nightly-2026-10-14</b> (9743c3a)<br/>2026-10-16 · <i>Nightly 10-14; indirect calls;</i><br/><i>trim MachineWP (+12 / +23)</i><br/><b>[G03 (P3.lean), G14 (Examples.lean)]</b>"]
+        SPEED["<b>sg/upstream-speedups</b> (a443d2c)<br/>2026-10-19 · <i>Clean simp/grind forms,</i><br/><i>faster CFG VCs (+14 / +37)</i><br/><b>[G04 (P3.lean), G14 (Examples.lean)]</b>"]
+
+        C829 -->|"+11"| FMA3
+        FMA3 -->|"+12"| N1014
+        N1014 -->|"+14"| SPEED
+
+        %% Track B: 63c72ed -> 7cfd503 -> sg/drop-framewp -> vcgen
+        M63C["<b>63c72ed</b> (Merge) · 2026-09-29<br/><i>Adopt Lean module system</i><br/><i>&amp; nightly-2026-09-21</i><br/><b>[G10 (Examples.lean)]</b>"]
+        M7CF["<b>7cfd503</b> (Merge) · 2026-09-29<br/><i>Pull sepwp prototype (PR #161)</i><br/><i>over baseline trunk</i><br/><b>[G10 (Examples.lean)]</b>"]
+        DROP["<b>sg/drop-framewp</b> (bc85a6a)<br/>2026-10-27 · <i>CFG-invariant Program.wp;</i><br/><i>drops sep WP &amp; frame inf (+179)</i><br/><b>[G05 (WP/P3.lean), G15 (Examples.lean)]</b>"]
+        VCGEN["<b>vcgen</b> (6c2f048) · 2026-11-12<br/><i>Main active VCGen: ChangingFrames /</i><br/><i>ManyCalls + upstream sync (+152 / +331)</i><br/><b>[G06 (WP/P3.lean), G16 (Examples.lean)]</b>"]
+
+        C829 -->|"+21"| M63C
+        TN -. merge .-> M63C
+        M63C --> M7CF
+        SEP -. merge .-> M7CF
+        M7CF --> DROP
+        DROP -->|"+152"| VCGEN
+        M_247 -. "merge (339acd1)" .-> VCGEN
+
+        %% sg/merge-vcgen combines Track A + early vcgen + drop-framewp
+        DCC["<b>dcc8cc1</b> (Merge) · 2026-10-26<br/><i>Merge early vcgen (fe604b6)</i><br/><i>into sg/mem-mapped</i><br/><b>[G05 (WP/P3.lean), G15 (Examples.lean)]</b>"]
+        MERGE_VC["<b>sg/merge-vcgen</b> (3696f0b)<br/>2026-10-27 · <i>Port Butterflies/FmulSse;</i><br/><i>unify Track A + drop-framewp (+26 / +205)</i><br/><b>[G05 (WP/P3.lean), G15 (Examples.lean)]</b>"]
+
+        FMA3 --> DCC
+        DCC --> MERGE_VC
+        DROP -. merge .-> MERGE_VC
+    end
+
+    %% Chronological Timeline Axis (below the left-to-right graph)
+    subgraph TIMELINE["Timeline (2026, Committer Dates)"]
+        T01["<b>Jul 22</b><br/>PR #125"]
+        T02["<b>Aug 03</b><br/>PR #131"]
+        T03["<b>Aug 14–17</b><br/>estatem / PR #154"]
+        T04["<b>Sep 10</b><br/>23b6409"]
+        T05(["<b>Sep 18</b><br/>829c9468"])
+        T06["<b>Sep 25</b><br/>nightly-09-21"]
+        T07["<b>Sep 25–29</b><br/>PR #160 / 63c72ed"]
+        T08["<b>Sep 28</b><br/>sepwp"]
+        T09["<b>Sep 29–30</b><br/>7cfd503 / FMA3"]
+        T10["<b>Oct 16–20</b><br/>10-14 / PR #165"]
+        T11["<b>Oct 19–20</b><br/>speedups / PR #166"]
+        T12["<b>Oct 26–27</b><br/>dcc8cc1 / drop-framewp"]
+        T13["<b>Oct 27</b><br/>merge-vcgen"]
+        T14["<b>Nov 02</b><br/>PR #179"]
+        T15["<b>Nov 05–11</b><br/>conj-wp / PR #247"]
+        T16["<b>Nov 12–16</b><br/>vcgen / main HEAD"]
+
+        T01 --> T02 --> T03 --> T04 --> T05 --> T06 --> T07 --> T08 --> T09 --> T10 --> T11 --> T12 --> T13 --> T14 --> T15 --> T16
+    end
+
+    %% Invisible rank-pinning links aligning commits above their timeline dates
+    M_125 ~~~ T02
+    T01 ~~~ M_131
+    M_131 ~~~ T03
+    T02 ~~~ EST
+    T02 ~~~ M_154
+    EST ~~~ T04
+    M_154 ~~~ T04
+    T03 ~~~ M23B
+    M23B ~~~ T05
+    T04 ~~~ C829
+    C829 ~~~ T06
+    T05 ~~~ TN
+    TN ~~~ T07
+    T06 ~~~ M_160
+    T06 ~~~ M63C
+    M_160 ~~~ T08
+    M63C ~~~ T08
+    T07 ~~~ SEP
+    SEP ~~~ T09
+    T08 ~~~ M7CF
+    T08 ~~~ FMA3
+    M7CF ~~~ T10
+    FMA3 ~~~ T10
+    T09 ~~~ N1014
+    T09 ~~~ M_165
+    N1014 ~~~ T11
+    M_165 ~~~ T11
+    T10 ~~~ SPEED
+    T10 ~~~ PR_166
+    SPEED ~~~ T12
+    PR_166 ~~~ T12
+    T11 ~~~ DCC
+    T11 ~~~ DROP
+    DCC ~~~ T13
+    DROP ~~~ T13
+    T12 ~~~ MERGE_VC
+    MERGE_VC ~~~ T14
+    T13 ~~~ M_179
+    M_179 ~~~ T15
+    T14 ~~~ PR_195
+    T14 ~~~ M_247
+    PR_195 ~~~ T16
+    M_247 ~~~ T16
+    T15 ~~~ VCGEN
+    T15 ~~~ M_HEAD
+
+    %% Legend
+    subgraph LEGEND["Node Color Legend"]
+        direction LR
+        L1["Upstream main"]
+        L2["Older / frozen base branch"]
+        L3["Integration merge"]
+        L_PR["Active PR branch (thick rim)"]
+        L4(["Target commit / fork point"])
+        L5["Track A: FMA3 &amp; speedups"]
+        L6["Track B: Active VCGen line"]
+    end
+
+    %% Subgraph backgrounds (clean neutral canvas so node colors pop)
+    style UPSTREAM fill:#f8fafc,stroke:#94a3b8,stroke-width:1.5px,color:#0f172a
+    style SGRAF fill:#f8fafc,stroke:#94a3b8,stroke-width:1.5px,color:#0f172a
+    style TIMELINE fill:#f1f5f9,stroke:#64748b,stroke-width:1.5px,color:#0f172a
+    style LEGEND fill:#ffffff,stroke:#cbd5e1,stroke-width:1px,color:#0f172a
+
+    %% Node-type color classes
+    classDef upstream fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#0f172a
+    classDef baseBranch fill:#f1f5f9,stroke:#64748b,stroke-width:1.5px,color:#0f172a
+    classDef mergeNode fill:#ede9fe,stroke:#7c3aed,stroke-width:1.5px,color:#0f172a
+    classDef activePR fill:#fce7f3,stroke:#be123c,stroke-width:4.5px,color:#0f172a
+    classDef targetCommit fill:#fef08a,stroke:#b45309,stroke-width:4px,color:#0f172a
+    classDef trackA fill:#ccfbf1,stroke:#0d9488,stroke-width:2px,color:#0f172a
+    classDef trackB fill:#dcfce7,stroke:#15803d,stroke-width:2px,color:#0f172a
+    classDef timelineNode fill:#ffffff,stroke:#64748b,stroke-width:1.5px,color:#0f172a
+    classDef timelineTarget fill:#fef08a,stroke:#b45309,stroke-width:3px,color:#0f172a
+
+    class M_125,M_131,M_154,M_160,M_165,M_179,M_247,M_HEAD,L1 upstream
+    class SG_MAIN,EST,TN,L2 baseBranch
+    class M23B,M63C,M7CF,DCC,L3 mergeNode
+    class PR_166,PR_195,SEP,L_PR activePR
+    class C829,L4 targetCommit
+    class FMA3,N1014,SPEED,L5 trackA
+    class DROP,VCGEN,MERGE_VC,L6 trackB
+    class T01,T02,T03,T04,T06,T07,T08,T09,T10,T11,T12,T13,T14,T15,T16 timelineNode
+    class T05 timelineTarget
