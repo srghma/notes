@@ -4,24 +4,173 @@
 
 abbrev Label := Nat
 
-inductive BinOp where
-  | add
-  | cons
+inductive Ty where
+  | arr  : Ty → Ty → Ty
+  | nat  : Ty
+  | prod : Ty → Ty → Ty
+  | list : Ty → Ty
   deriving DecidableEq, Repr
 
-inductive Term : Nat → Type where
-  | var  : Fin n → Term n
-  | lam  : Term (n + 1) → Term n
-  | app  : Term n → Term n → Term n
-  | sup  : Label → Term n → Term n → Term n
-  | dup  : Label → Term n → Term (n + 2) → Term n
-  | num  : Nat → Term n
-  | op2  : BinOp → Term n → Term n → Term n
-  | pair : Term n → Term n → Term n
-  | nil  : Term n
+abbrev Ctx := List Ty
+
+-- Typed binary operators: takes `α` and `β`, produces `γ`
+inductive BinOp : Ty → Ty → Ty → Type where
+  | add  : BinOp .nat .nat .nat
+  | cons : BinOp α (.list α) (.list α)
   deriving Repr
 
-abbrev ClosedTerm := Term 0
+
+-- Proof that type `τ` appears in context `Γ` (like a typed de Bruijn index)
+inductive HasType : Ctx → Ty → Type where
+  | here  : HasType (τ :: Γ) τ
+  | there : HasType Γ τ → HasType (σ :: Γ) τ
+  deriving Repr
+
+inductive Term : Ctx → Ty → Type where
+  | var  : HasType Γ τ → Term Γ τ
+  | lam  : Term (A :: Γ) B → Term Γ (.arr A B)
+  | app  : Term Γ (.arr A B) → Term Γ A → Term Γ B
+  | sup  : Label → Term Γ τ → Term Γ τ → Term Γ τ
+  | dup  : Label → Term Γ A → Term (A :: A :: Γ) τ → Term Γ τ
+  | num  : Nat → Term Γ .nat
+  | op2  : BinOp α β γ → Term Γ α → Term Γ β → Term Γ γ
+  | pair : Term Γ A → Term Γ B → Term Γ (.prod A B)
+  | nil  : Term Γ (.list A)
+  deriving Repr
+
+abbrev ClosedTerm (τ : Ty) := Term [] τ
+
+namespace TypedIC
+
+-- Typed renaming map: every variable in `Γ` maps to a variable of the same type in `Δ`
+def Ren (Γ Δ : Ctx) := ∀ {τ}, HasType Γ τ → HasType Δ τ
+
+def Ren.id : Ren Γ Γ := fun h => h
+
+def Ren.lift (ρ : Ren Γ Δ) : Ren (σ :: Γ) (σ :: Δ)
+  | .here    => .here
+  | .there h => .there (ρ h)
+
+def Ren.lift2 (ρ : Ren Γ Δ) : Ren (σ :: σ :: Γ) (σ :: σ :: Δ) :=
+  (ρ.lift).lift
+
+def rename : Ren Γ Δ → Term Γ τ → Term Δ τ
+  | ρ, .var h        => .var (ρ h)
+  | ρ, .lam body     => .lam (rename ρ.lift body)
+  | ρ, .app f a      => .app (rename ρ f) (rename ρ a)
+  | ρ, .sup l a b    => .sup l (rename ρ a) (rename ρ b)
+  | ρ, .dup l v body => .dup l (rename ρ v) (rename ρ.lift2 body)
+  | _, .num k        => .num k
+  | ρ, .op2 op a b   => .op2 op (rename ρ a) (rename ρ b)
+  | ρ, .pair a b     => .pair (rename ρ a) (rename ρ b)
+  | _, .nil          => .nil
+
+def shift1 (t : Term Γ τ) : Term (σ :: Γ) τ :=
+  rename .there t
+
+def shift2 (t : Term Γ τ) : Term (σ :: σ :: Γ) τ :=
+  rename (fun h => .there (.there h)) t
+
+-- Typed substitution map: every variable of type `τ` in `Γ` maps to `Term Δ τ`
+def Sub (Γ Δ : Ctx) := ∀ {τ}, HasType Γ τ → Term Δ τ
+
+def Sub.lift (σ : Sub Γ Δ) : Sub (A :: Γ) (A :: Δ)
+  | .here    => .var .here
+  | .there h => shift1 (σ h)
+
+def Sub.lift2 (σ : Sub Γ Δ) : Sub (A :: A :: Γ) (A :: A :: Δ)
+  | .here           => .var .here
+  | .there .here    => .var (.there .here)
+  | .there (.there h) => shift2 (σ h)
+
+def subst : Sub Γ Δ → Term Γ τ → Term Δ τ
+  | σ, .var h        => σ h
+  | σ, .lam body     => .lam (subst σ.lift body)
+  | σ, .app f a      => .app (subst σ f) (subst σ a)
+  | σ, .sup l a b    => .sup l (subst σ a) (subst σ b)
+  | σ, .dup l v body => .dup l (subst σ v) (subst σ.lift2 body)
+  | _, .num k        => .num k
+  | σ, .op2 op a b   => .op2 op (subst σ a) (subst σ b)
+  | σ, .pair a b     => .pair (subst σ a) (subst σ b)
+  | _, .nil          => .nil
+
+-- Single-variable beta substitution: `(λx:A. body) arg`
+def betaSubst (body : Term (A :: Γ) B) (arg : Term Γ A) : Term Γ B :=
+  subst (fun
+    | .here    => arg
+    | .there h => .var h) body
+
+-- Two-variable duplication substitution: `! x &L= val; body` with `v0, v1 : Term Γ A`
+def dupSubst (body : Term (A :: A :: Γ) τ) (v0 v1 : Term Γ A) : Term Γ τ :=
+  subst (fun
+    | .here           => v0
+    | .there .here    => v1
+    | .there (.there h) => .var h) body
+
+inductive Step : Term Γ τ → Term Γ τ → Prop where
+  | appLam {body : Term (A :: Γ) B} {arg : Term Γ A} :
+      Step (.app (.lam body) arg) (betaSubst body arg)
+
+  | dupSupSame {l : Label} {a b : Term Γ A} {t : Term (A :: A :: Γ) τ} :
+      Step (.dup l (.sup l a b) t) (dupSubst t a b)
+
+  | appSup {l : Label} {a b : Term Γ (.arr A B)} {c : Term Γ A} :
+      Step (.app (.sup l a b) c)
+        (.dup l (shift2 c) (.sup l
+          (.app (shift2 a) (.var .here))
+          (.app (shift2 b) (.var (.there .here)))))
+
+  | dupLam {l : Label} {body : Term (A :: Γ) B} {t : Term (.arr A B :: .arr A B :: Γ) τ} :
+      Step (.dup l (.lam body) t)
+        (.dup l (shift2 body)
+          (dupSubst
+            (rename (fun
+              | .here           => .here
+              | .there .here    => .there .here
+              | .there (.there h) => .there (.there (.there h))) t)
+            (.lam (.var (.there .here)))
+            (.lam (.var (.there (.there (.there .here)))))))
+
+  | dupNum {l : Label} {k : Nat} {t : Term (.nat :: .nat :: Γ) τ} :
+      Step (.dup l (.num k) t) (dupSubst t (.num k) (.num k))
+
+  | op2Add {k1 k2 : Nat} :
+      Step (.op2 .add (.num k1) (.num k2)) (.num (k1 + k2))
+
+  | op2SupL {l : Label} {op : BinOp α β γ} {a b : Term Γ α} {c : Term Γ β} :
+      Step (.op2 op (.sup l a b) c)
+        (.dup l (shift2 c) (.sup l
+          (.op2 op (shift2 a) (.var .here))
+          (.op2 op (shift2 b) (.var (.there .here)))))
+
+  | congAppL {f f' : Term Γ (.arr A B)} {a : Term Γ A} :
+      Step f f' → Step (.app f a) (.app f' a)
+  | congOp2L {op : BinOp α β γ} {a a' : Term Γ α} {b : Term Γ β} :
+      Step a a' → Step (.op2 op a b) (.op2 op a' b)
+  | congSupL {l : Label} {a a' b : Term Γ τ} :
+      Step a a' → Step (.sup l a b) (.sup l a' b)
+  | congSupR {l : Label} {a b b' : Term Γ τ} :
+      Step b b' → Step (.sup l a b) (.sup l a b')
+  | congDupV {l : Label} {v v' : Term Γ A} {t : Term (A :: A :: Γ) τ} :
+      Step v v' → Step (.dup l v t) (.dup l v' t)
+
+-- Typed Church numeral `2` at type `(A → A) → (A → A)`
+def churchTwo (A : Ty) : ClosedTerm (.arr (.arr A A) (.arr A A)) :=
+  .lam (.lam
+    (.app (.var (.there .here))
+          (.app (.var (.there .here)) (.var .here))))
+
+-- Example: (&A{1, 2} + &A{10, 20}) : Term [] .nat
+def exSameLabelSup : ClosedTerm .nat :=
+  .op2 .add
+    (.sup 1 (.num 1) (.num 2))
+    (.sup 1 (.num 10) (.num 20))
+
+
+
+
+
+
 
 
 namespace IC
@@ -175,22 +324,7 @@ inductive Step : Term n → Term n → Prop where
   | op2SupL {l : Label} {op : BinOp} {a b c : Term n} :
       Step (.op2 op (.sup l a b) c)
         (.dup l c (.sup l
-          (.op2 op (shiftK 2 a) (.var ⟨0, by omega⟩))
-          (.op2 op (shiftK 2 b) (.var ⟨1, by omega⟩))))
 
-  -- Congruence rules for evaluation under constructors / binders
-  | congAppL {f f' a : Term n} : Step f f' → Step (.app f a) (.app f' a)
-  | congAppR {f a a' : Term n} : Step a a' → Step (.app f a) (.app f a')
-  | congOp2L {op : BinOp} {a a' b : Term n} : Step a a' → Step (.op2 op a b) (.op2 op a' b)
-  | congOp2R {op : BinOp} {a b b' : Term n} : Step b b' → Step (.op2 op a b) (.op2 op a b')
-  | congSupL {l : Label} {a a' b : Term n} : Step a a' → Step (.sup l a b) (.sup l a' b)
-  | congSupR {l : Label} {a b b' : Term n} : Step b b' → Step (.sup l a b) (.sup l a b')
-  | congDupV {l : Label} {v v' : Term n} {t : Term (n + 2)} :
-      Step v v' → Step (.dup l v t) (.dup l v' t)
-  | congDupB {l : Label} {v : Term n} {t t' : Term (n + 2)} :
-      Step t t' → Step (.dup l v t) (.dup l v t')
-  | congLam {body body' : Term (n + 1)} :
-      Step body body' → Step (.lam body) (.lam body')
 
 infix:50 " ~1> " => Step
 
