@@ -15,3 +15,21 @@ One correction: Bend does allow runtime function values and closures, including 
 The important practical restriction is therefore **no caller-local capture in `~` arguments**. The resulting template body also remains subject to Bend’s ordinary checking rules, including affine usage and termination checking. Code-search results may be incomplete; [view more code-search results on GitHub](https://github.com/bendlang/bend/search?q=%22template+applied+to+closed+~+arguments%22&type=code).
 
 
+------
+
+> Where is hvm5? Taelin told its in this repo https://github.com/bendlang/bend
+
+I’ll locate HVM5 references and directories in the repository, including commit/branch-agnostic code search.There are **two meanings** of HVM5 in this repo:
+
+- **Runtime implementation:** [`bend2/comp.ts`](https://github.com/bendlang/bend/tree/0e2f38f759cc830849e489307f3d256a7d148288/bend2) and the [`effs/`](https://github.com/bendlang/bend/tree/0e2f38f759cc830849e489307f3d256a7d148288/bend2/effs) directory contain the Bend 2 compiler/runtime. HVM5 is not a separate source directory.
+- **Pure HVM5 demo/interpreter:** [`demos/pure_hvm5_mini/`](https://github.com/bendlang/bend/tree/0e2f38f759cc830849e489307f3d256a7d148288/demos/pure_hvm5_mini), an executable implementation and formalized mini evaluator written in Bend itself.
+
+The demo’s main files are:
+
+- [`demos/pure_hvm5_mini/main.bend`](https://github.com/bendlang/bend/blob/0e2f38f759cc830849e489307f3d256a7d148288/demos/pure_hvm5_mini/main.bend)
+- [`demos/pure_hvm5_mini/LAWS.bend`](https://github.com/bendlang/bend/blob/0e2f38f759cc830849e489307f3d256a7d148288/demos/pure_hvm5_mini/LAWS.bend)
+- [`demos/pure_hvm5_mini/PROOF.bend`](https://github.com/bendlang/bend/blob/0e2f38f759cc830849e489307f3d256a7d148288/demos/pure_hvm5_mini/PROOF.bend)
+
+The native HVM5 runtime/core machinery is likely in [`bend2/comp.ts`](https://github.com/bendlang/bend/blob/0e2f38f759cc830849e489307f3d256a7d148288/bend2/comp.ts), which generates C, CUDA, Metal, and JavaScript code. The repo does not appear to contain a separate Rust/C++ HVM5 repository or standalone `hvm5/` directory.
+
+Code-search results may be incomplete. [View more HVM5 code-search results](https://github.com/bendlang/bend/search?q=hvm5&type=code).
