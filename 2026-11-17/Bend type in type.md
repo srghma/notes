@@ -1,0 +1,17 @@
+Bend allows Type in Type bc closures cannot be cloned (Girard Paradox, Curry paradox, Russell Paradox - they happen only in languages where non terminating loops are possible, and loops need closures to be clonable). Therefore bend doesnt allow closures. But it limits language a lot therefore to remediate there are templates of functions. E.g. map function takes ~f which is a template of f. Which means function will be extracted and defined as static . Does it mean that function cannot capture variables? Or there other restrictions? Where they are defined in coee? 
+
+----
+
+A `~f` template argument **cannot capture a caller’s local variable or parameter**. It must be closed: it may refer to top-level definitions, but not values in the caller’s scope. So `map(~(x => x + k), xs)` is rejected when `k` is a runtime parameter; pass `k` to a named function as a normal parameter instead.
+
+One correction: Bend does allow runtime function values and closures, including ones that capture variables. They’re affine: a function value can be used at most once, so it can’t be reused like the callback in recursive `map`. A template works differently: its argument is substituted at compile time, and each set of template arguments gets its own specialized instance. That lets the body call `f` repeatedly without passing a reusable closure at runtime. The [guide’s Templates section](https://github.com/bendlang/bend/blob/0e2f38f759cc830849e489307f3d256a7d148288/guide/GUIDE.md#L257-L278) describes this, and the [BendTT discussion](https://github.com/bendlang/bend/blob/0e2f38f759cc830849e489307f3d256a7d148288/bend2/docs/BendTT/main.typ#L987-L1008) explains the affine-function limitation and the runtime-parameter alternative.
+
+**Where it’s implemented:**
+
+- **Parsing and placement rules:** `parse_tele` in [`bend2/bend.ts`](https://github.com/bendlang/bend/blob/0e2f38f759cc830849e489307f3d256a7d148288/bend2/bend.ts#L2487-L2518) enforces that `~` parameters are leading. The law-clause parser applies the corresponding rule to template clauses ([same file](https://github.com/bendlang/bend/blob/0e2f38f759cc830849e489307f3d256a7d148288/bend2/bend.ts#L2652-L2687)).
+- **Checking and specialization:** `def_check` checks the template body with opaque template parameters; `def_inst` checks the `~` arguments in an empty context, rejects open arguments, and creates a checked instance ([`bend2/bend.ts`](https://github.com/bendlang/bend/blob/0e2f38f759cc830849e489307f3d256a7d148288/bend2/bend.ts#L3860-L3913)). The checker’s comments summarize the closed-argument and instantiation rules ([lines 3349–3354](https://github.com/bendlang/bend/blob/0e2f38f759cc830849e489307f3d256a7d148288/bend2/bend.ts#L3349-L3354)).
+- **A concrete capture rejection:** [`tests/comptime/err_leak.bend`](https://github.com/bendlang/bend/blob/0e2f38f759cc830849e489307f3d256a7d148288/tests/comptime/err_leak.bend#L1-L18) shows a lambda capturing a caller parameter being rejected, with the diagnostic suggesting passing that value at runtime.
+
+The important practical restriction is therefore **no caller-local capture in `~` arguments**. The resulting template body also remains subject to Bend’s ordinary checking rules, including affine usage and termination checking. Code-search results may be incomplete; [view more code-search results on GitHub](https://github.com/bendlang/bend/search?q=%22template+applied+to+closed+~+arguments%22&type=code).
+
+
