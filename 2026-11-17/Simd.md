@@ -1,3 +1,5 @@
+https://shnatsel.github.io/state-of-simd-rust-2026/
+
 Https://matklad.github.io/2023/04/09/can-you-trust-a-compiler-to-optimize-your-code.html
 
 How can rewrite 
