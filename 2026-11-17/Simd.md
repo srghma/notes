@@ -1,7 +1,7 @@
 Https://matklad.github.io/2023/04/09/can-you-trust-a-compiler-to-optimize-your-code.html
 
 How can rewrite 
-
+```
 // 80 milliseconds
 fn common_prefix5(xs: &[u8], ys: &[u8]) -> usize {
   let chunk_size = 16;
@@ -13,9 +13,10 @@ fn common_prefix5(xs: &[u8], ys: &[u8]) -> usize {
     .take_while(|(x, y)| x == y)
     .count()
 }
-
+```
 Ising Simd datatype and other std::simd funcs?
 ---
+```
 #![feature(portable_simd)]
 
 use std::simd::cmp::SimdPartialEq;
@@ -46,8 +47,9 @@ pub fn common_prefix_simd(xs: &[u8], ys: &[u8]) -> usize {
         .take_while(|(x, y)| x == y)
         .count()
 }
-
+```
 ---
+```
 use wide::u8x16;
 
 pub fn common_prefix_wide(xs: &[u8], ys: &[u8]) -> usize {
@@ -76,8 +78,9 @@ pub fn common_prefix_wide(xs: &[u8], ys: &[u8]) -> usize {
         .take_while(|(x, y)| x == y)
         .count()
 }
-
+```
 ---
+```
 use pulp::Arch;
 
 pub fn common_prefix_pulp(xs: &[u8], ys: &[u8]) -> usize {
@@ -103,9 +106,10 @@ fn common_prefix_chunked(xs: &[u8], ys: &[u8], chunk_size: usize) -> usize {
         .take_while(|(x, y)| x == y)
         .count()
 }
+```
 
 ---
-
+```
 use macerator::{vload_unaligned, AutoArch, Simd, WithSimd};
 
 struct CommonPrefix<'a> {
@@ -149,5 +153,59 @@ impl<'a> WithSimd for CommonPrefix<'a> {
 pub fn common_prefix_macerator(xs: &[u8], ys: &[u8]) -> usize {
     AutoArch::new().dispatch(CommonPrefix { xs, ys })
 }
+```
 
+---
+```
+use fearless_simd::{Bytes, Level, Simd, SimdBase, SimdFrom, SimdMask};
 
+pub fn common_prefix_fearless(xs: &[u8], ys: &[u8]) -> usize {
+    Level::new().dispatch(CommonPrefix { xs, ys })
+}
+
+struct CommonPrefix<'a> {
+    xs: &'a [u8],
+    ys: &'a [u8],
+}
+
+impl fearless_simd::WithSimd for CommonPrefix<'_> {
+    type Output = usize;
+
+    #[inline(always)]
+    fn with_simd<S: Simd>(self, simd: S) -> usize {
+        // `S::u8s` adapts its lane count to the dispatched architecture
+        // (e.g., 16 on NEON/SSE4.2, 32 on AVX2, 64 on AVX-512).
+        let lanes = <S::u8s as SimdBase>::N;
+        let min_len = self.xs.len().min(self.ys.len());
+        let mut off = 0;
+
+        while off + lanes <= min_len {
+            // Safe slice-to-vector conversion (`from_slice` checks length).
+            let a = S::u8s::from_slice(simd, &self.xs[off..off + lanes]);
+            let b = S::u8s::from_slice(simd, &self.ys[off..off + lanes]);
+
+            // Compare lanes; `all()` checks if every lane matched.
+            let eq_mask = a.simd_eq(b);
+            if !eq_mask.all() {
+                // Find the first mismatched lane within this vector.
+                let a_bytes = a.to_bytes();
+                let b_bytes = b.to_bytes();
+                for i in 0..lanes {
+                    if a_bytes.as_slice()[i] != b_bytes.as_slice()[i] {
+                        return off + i;
+                    }
+                }
+            }
+
+            off += lanes;
+        }
+
+        // Scalar tail for remaining bytes (`min_len - off < lanes`).
+        off + self.xs[off..min_len]
+            .iter()
+            .zip(&self.ys[off..min_len])
+            .take_while(|(x, y)| x == y)
+            .count()
+    }
+}
+```
